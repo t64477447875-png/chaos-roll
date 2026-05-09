@@ -60,6 +60,13 @@ public final class RollTimerManager {
         sendSync(player);
     }
 
+    public static void markRolling(ServerPlayer player) {
+        PlayerTimer t = TIMERS.get(player.getUUID());
+        if (t == null) return;
+        t.rollReady = false;
+        sendSync(player);
+    }
+
     public static boolean isRollReady(ServerPlayer player) {
         PlayerTimer t = TIMERS.get(player.getUUID());
         return t != null && t.rollReady;
