@@ -1,5 +1,6 @@
 package com.chaosroll.event.coop;
 
+import com.chaosroll.config.ConfigManager;
 import com.chaosroll.event.BaseEvent;
 import com.chaosroll.event.EventContext;
 import com.chaosroll.event.EventRarity;
@@ -204,11 +205,20 @@ public class ArenaDuelEvent extends BaseEvent {
         if (pb != null) pb.teleportTo(session.startBX, session.startBY, session.startBZ);
 
         if (loser != null) {
-            String reason = noFight ? "відмовилися битися — СМЕРТЬ" : "програв дуель — СМЕРТЬ";
+            boolean prevent = ConfigManager.get().preventDirectDeath;
+            String reason = prevent
+                    ? (noFight ? "відмовилися битися — Slowness V" : "програв дуель — Slowness V")
+                    : (noFight ? "відмовилися битися — СМЕРТЬ" : "програв дуель — СМЕРТЬ");
             server.getPlayerList().broadcastSystemMessage(
                     Component.literal("[Chaos Roll] " + loser.getName().getString() + " " + reason)
                             .withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD), false);
-            loser.kill();
+            if (prevent) {
+                loser.setHealth(1.0f);
+                loser.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 4));
+                loser.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 200, 0));
+            } else {
+                loser.kill();
+            }
         } else {
             server.getPlayerList().broadcastSystemMessage(
                     Component.literal("[Chaos Roll] Дуель завершилася в нічию.")

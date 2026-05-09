@@ -1,5 +1,6 @@
 package com.chaosroll.client.hud;
 
+import com.chaosroll.config.ConfigManager;
 import com.chaosroll.network.ActiveEffectsPacket;
 import com.chaosroll.network.GlobalEventPacket;
 import com.chaosroll.network.RollResultPacket;
@@ -14,11 +15,12 @@ public final class ChaosHudRenderer {
 
     public static void register() {
         HudRenderCallback.EVENT.register((ctx, tickCounter) -> {
-            TimerBarRenderer.render(ctx);
-            ActiveEffectsRenderer.render(ctx);
-            GlobalBannerRenderer.render(ctx);
-            RollButtonRenderer.render(ctx);
-            RollAnimationRenderer.render(ctx);
+            var cfg = ConfigManager.get();
+            if (cfg.showTimerBar) TimerBarRenderer.render(ctx);
+            if (cfg.showActiveEffectsPanel) ActiveEffectsRenderer.render(ctx);
+            if (cfg.globalEventsEnabled) GlobalBannerRenderer.render(ctx);
+            if (cfg.showTimerBar) RollButtonRenderer.render(ctx);
+            if (cfg.enableRollAnimation) RollAnimationRenderer.render(ctx);
         });
 
         ClientPlayNetworking.registerGlobalReceiver(TimerSyncPacket.TYPE, (payload, context) -> {
@@ -27,6 +29,7 @@ public final class ChaosHudRenderer {
 
         ClientPlayNetworking.registerGlobalReceiver(RollResultPacket.TYPE, (payload, context) -> {
             context.client().execute(() -> {
+                if (!ConfigManager.get().enableRollAnimation) return;
                 RollAnimationState.registerSpinName(payload.displayName());
                 RollAnimationState.start(
                         payload.eventId(),

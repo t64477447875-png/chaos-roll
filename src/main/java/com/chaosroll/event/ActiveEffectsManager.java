@@ -1,5 +1,6 @@
 package com.chaosroll.event;
 
+import com.chaosroll.config.ConfigManager;
 import com.chaosroll.network.ActiveEffectsPacket;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
@@ -32,7 +33,12 @@ public final class ActiveEffectsManager {
                 event.getDisplayName(),
                 event.getType().ordinal(),
                 endTick);
-        ACTIVE.computeIfAbsent(id, u -> new ArrayList<>()).add(tracked);
+        List<TrackedEffect> list = ACTIVE.computeIfAbsent(id, u -> new ArrayList<>());
+        list.add(tracked);
+        int max = Math.max(1, ConfigManager.get().maxActiveEffects);
+        while (list.size() > max) {
+            list.remove(0);
+        }
         sendTo(player);
     }
 

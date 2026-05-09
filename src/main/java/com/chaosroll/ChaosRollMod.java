@@ -1,5 +1,7 @@
 package com.chaosroll;
 
+import com.chaosroll.command.ChaosRollCommand;
+import com.chaosroll.config.ConfigManager;
 import com.chaosroll.event.ActiveEffectsManager;
 import com.chaosroll.event.EventRegistry;
 import com.chaosroll.event.ScheduledTaskManager;
@@ -7,6 +9,7 @@ import com.chaosroll.event.coop.CoopTickHandler;
 import com.chaosroll.network.NetworkHandler;
 import com.chaosroll.timer.RollTimerManager;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,8 +25,11 @@ public class ChaosRollMod implements ModInitializer {
     public void onInitialize() {
         LOGGER.info("[Chaos Roll] Initializing mod (server-side + shared)...");
 
+        ConfigManager.init();
         EventRegistry.bootstrap();
         NetworkHandler.registerPayloads();
+        CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) ->
+                ChaosRollCommand.register(dispatcher));
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
                 RollTimerManager.onPlayerJoin(handler.getPlayer()));

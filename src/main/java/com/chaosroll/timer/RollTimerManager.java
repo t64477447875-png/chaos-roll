@@ -1,5 +1,6 @@
 package com.chaosroll.timer;
 
+import com.chaosroll.config.ConfigManager;
 import com.chaosroll.network.TimerSyncPacket;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.level.ServerPlayer;
@@ -10,15 +11,18 @@ import java.util.UUID;
 
 public final class RollTimerManager {
 
-    public static final int ROLL_INTERVAL_SECONDS = 60;
     private static final int TICKS_PER_SECOND = 20;
+
+    public static int getRollIntervalSeconds() {
+        return ConfigManager.get().rollIntervalSeconds;
+    }
 
     private static final Map<UUID, PlayerTimer> TIMERS = new HashMap<>();
 
     private RollTimerManager() {}
 
     public static void onPlayerJoin(ServerPlayer player) {
-        TIMERS.put(player.getUUID(), new PlayerTimer(ROLL_INTERVAL_SECONDS * TICKS_PER_SECOND, false));
+        TIMERS.put(player.getUUID(), new PlayerTimer(getRollIntervalSeconds() * TICKS_PER_SECOND, false));
         sendSync(player);
     }
 
@@ -29,7 +33,7 @@ public final class RollTimerManager {
     public static void tickPlayer(ServerPlayer player) {
         UUID id = player.getUUID();
         PlayerTimer t = TIMERS.computeIfAbsent(id,
-                u -> new PlayerTimer(ROLL_INTERVAL_SECONDS * TICKS_PER_SECOND, false));
+                u -> new PlayerTimer(getRollIntervalSeconds() * TICKS_PER_SECOND, false));
 
         if (t.rollReady) {
             return;
@@ -53,9 +57,10 @@ public final class RollTimerManager {
 
     public static void resetPlayer(ServerPlayer player) {
         UUID id = player.getUUID();
+        int intervalTicks = getRollIntervalSeconds() * TICKS_PER_SECOND;
         PlayerTimer t = TIMERS.computeIfAbsent(id,
-                u -> new PlayerTimer(ROLL_INTERVAL_SECONDS * TICKS_PER_SECOND, false));
-        t.ticksLeft = ROLL_INTERVAL_SECONDS * TICKS_PER_SECOND;
+                u -> new PlayerTimer(intervalTicks, false));
+        t.ticksLeft = intervalTicks;
         t.rollReady = false;
         sendSync(player);
     }

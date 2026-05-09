@@ -1,5 +1,6 @@
 package com.chaosroll.client.hud;
 
+import com.chaosroll.config.ConfigManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -23,8 +24,9 @@ public final class TimerBarRenderer {
         int seconds = TimerState.getSecondsRemaining();
         boolean ready = TimerState.isRollReady();
 
+        int interval = Math.max(1, ConfigManager.get().rollIntervalSeconds);
         float progress = ready ? 1.0f
-                : Math.min(1.0f, Math.max(0.0f, (60.0f - seconds) / 60.0f));
+                : Math.min(1.0f, Math.max(0.0f, (interval - seconds) / (float) interval));
         int filled = (int) (BAR_WIDTH * progress);
 
         ctx.fill(x - 1, y - 1, x + BAR_WIDTH + 1, y + BAR_HEIGHT + 1, 0xFF000000);
