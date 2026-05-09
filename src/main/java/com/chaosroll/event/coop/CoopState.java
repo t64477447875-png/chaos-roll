@@ -54,7 +54,51 @@ public final class CoopState {
         }
     }
 
+    public static final class LifelineSession {
+        public final UUID a;
+        public final UUID b;
+        public final int endTick;
+
+        public LifelineSession(UUID a, UUID b, int endTick) {
+            this.a = a;
+            this.b = b;
+            this.endTick = endTick;
+        }
+    }
+
+    public static final class SpeedrunSession {
+        public final int targetX;
+        public final int targetY;
+        public final int targetZ;
+        public final int endTick;
+        public boolean ended;
+
+        public SpeedrunSession(int x, int y, int z, int endTick) {
+            this.targetX = x;
+            this.targetY = y;
+            this.targetZ = z;
+            this.endTick = endTick;
+            this.ended = false;
+        }
+    }
+
+    public static final class HungerGamesSession {
+        public final int endTick;
+        public boolean ended;
+
+        public HungerGamesSession(int endTick) {
+            this.endTick = endTick;
+            this.ended = false;
+        }
+    }
+
     public static final Map<UUID, SharedHealthSession> SHARED_HEALTH = new HashMap<>();
     public static final Map<UUID, TwinFateSession> TWIN_FATE = new HashMap<>();
     public static final Map<UUID, HotPotatoSession> HOT_POTATO = new HashMap<>();
+    public static final Map<UUID, LifelineSession> LIFELINE = new HashMap<>();
+    public static SpeedrunSession SPEEDRUN = null;
+    public static HungerGamesSession HUNGER_GAMES = null;
+    public static final Map<UUID, Integer> BERSERKER = new HashMap<>();
+    public static final Map<UUID, Integer> BLOCK_ROULETTE = new HashMap<>();
+    public static final Map<UUID, Integer> CURSED_DAMAGE = new HashMap<>();
 }

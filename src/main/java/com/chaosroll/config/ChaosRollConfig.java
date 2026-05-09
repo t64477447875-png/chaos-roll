@@ -25,6 +25,7 @@ public final class ChaosRollConfig {
     public boolean enableParticles = true;
     public boolean globalEventsEnabled = true;
     public int maxActiveEffects = 5;
+    public boolean enableDifficultyScaling = true;
 
     public ChaosRollConfig copy() {
         ChaosRollConfig c = new ChaosRollConfig();
@@ -48,6 +49,7 @@ public final class ChaosRollConfig {
         c.enableParticles = enableParticles;
         c.globalEventsEnabled = globalEventsEnabled;
         c.maxActiveEffects = maxActiveEffects;
+        c.enableDifficultyScaling = enableDifficultyScaling;
         return c;
     }
 

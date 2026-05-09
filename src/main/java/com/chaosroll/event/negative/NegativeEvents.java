@@ -38,5 +38,8 @@ public final class NegativeEvents {
         EventRegistry.register(new VindicatorAmbushEvent());
         EventRegistry.register(new CursedSpawnEvent());
         EventRegistry.register(new EarthquakeEvent());
+        EventRegistry.register(new MirrorMatchEvent());
+        EventRegistry.register(new PacifistEvent());
+        EventRegistry.register(new CursedDamageEvent());
     }
 }
