@@ -1,0 +1,38 @@
+{
+	"schemaVersion": 1,
+	"id": "chaosroll",
+	"version": "${version}",
+	"name": "Chaos Roll",
+	"description": "Кожну хвилину з'являється кнопка ROLL — натисни R і отримай одну з 70 випадкових подій. Підтримує мультиплеєр.",
+	"authors": [
+		"Артем"
+	],
+	"contact": {
+		"sources": "https://github.com/Zeus998-lol/chaos-roll"
+	},
+	"license": "MIT",
+	"icon": "assets/chaosroll/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.chaosroll.ChaosRollMod"
+		],
+		"client": [
+			"com.chaosroll.client.ChaosRollClient"
+		]
+	},
+	"mixins": [
+		"chaosroll.mixins.json",
+		{
+			"config": "chaosroll.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.16.0",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {}
+}
