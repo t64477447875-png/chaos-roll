@@ -18,8 +18,37 @@ public final class RollTimerManager {
     }
 
     private static final Map<UUID, PlayerTimer> TIMERS = new HashMap<>();
+    private static boolean pausedAll = false;
 
     private RollTimerManager() {}
+
+    public static boolean isPaused(UUID id) {
+        if (pausedAll) return true;
+        PlayerTimer t = TIMERS.get(id);
+        return t != null && t.paused;
+    }
+
+    public static boolean isPausedAll() {
+        return pausedAll;
+    }
+
+    public static boolean togglePauseAll() {
+        pausedAll = !pausedAll;
+        return pausedAll;
+    }
+
+    public static boolean togglePause(ServerPlayer player) {
+        UUID id = player.getUUID();
+        PlayerTimer t = TIMERS.computeIfAbsent(id,
+                u -> new PlayerTimer(getRollIntervalSeconds() * TICKS_PER_SECOND, false));
+        t.paused = !t.paused;
+        return t.paused;
+    }
+
+    public static int getSecondsRemaining(UUID id) {
+        PlayerTimer t = TIMERS.get(id);
+        return t == null ? 0 : secondsFromTicks(t.ticksLeft);
+    }
 
     public static void onPlayerJoin(ServerPlayer player) {
         TIMERS.put(player.getUUID(), new PlayerTimer(getRollIntervalSeconds() * TICKS_PER_SECOND, false));
@@ -36,6 +65,10 @@ public final class RollTimerManager {
                 u -> new PlayerTimer(getRollIntervalSeconds() * TICKS_PER_SECOND, false));
 
         if (t.rollReady) {
+            return;
+        }
+
+        if (pausedAll || t.paused) {
             return;
         }
 
@@ -91,10 +124,12 @@ public final class RollTimerManager {
     private static final class PlayerTimer {
         int ticksLeft;
         boolean rollReady;
+        boolean paused;
 
         PlayerTimer(int ticksLeft, boolean rollReady) {
             this.ticksLeft = ticksLeft;
             this.rollReady = rollReady;
+            this.paused = false;
         }
     }
 }

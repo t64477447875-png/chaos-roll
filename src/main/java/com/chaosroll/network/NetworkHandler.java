@@ -51,8 +51,60 @@ public final class NetworkHandler {
         }
     }
 
+    public static boolean forceRoll(ServerPlayer player, boolean withAnimation) {
+        BaseEvent event = EventRegistry.pickFor(player);
+        if (event == null) return false;
+        runEvent(player, event, withAnimation);
+        return true;
+    }
+
+    public static boolean forceEvent(ServerPlayer player, BaseEvent event, boolean withAnimation) {
+        if (event == null) return false;
+        runEvent(player, event, withAnimation);
+        return true;
+    }
+
+    private static void runEvent(ServerPlayer player, BaseEvent event, boolean withAnimation) {
+        MinecraftServer server = player.getServer();
+        RollTimerManager.markRolling(player);
+
+        if (!withAnimation || server == null) {
+            executeEvent(event, player);
+            RollTimerManager.resetPlayer(player);
+            if (server != null) {
+                registerActiveEffect(server, player, event);
+                if (event.isGlobal()) broadcastGlobalEvent(player, event);
+            }
+            return;
+        }
+
+        ServerPlayNetworking.send(player, new RollResultPacket(
+                event.getId(),
+                event.getDisplayName(),
+                event.getType().ordinal(),
+                event.getRarity().ordinal()
+        ));
+
+        if (ConfigManager.get().enableParticles) spawnResultParticles(player, event);
+        if (ConfigManager.get().enableSounds) playResultSound(player, event);
+
+        ScheduledTaskManager.schedule(server, ANIMATION_DURATION_TICKS, srv -> {
+            ServerPlayer current = srv.getPlayerList().getPlayer(player.getUUID());
+            if (current == null) return;
+            executeEvent(event, current);
+            RollTimerManager.resetPlayer(current);
+            registerActiveEffect(srv, current, event);
+            if (event.isGlobal()) {
+                broadcastGlobalEvent(current, event);
+            }
+        });
+    }
+
     private static void handleRollRequest(ServerPlayer player) {
         if (!RollTimerManager.isRollReady(player)) {
+            return;
+        }
+        if (RollTimerManager.isPaused(player.getUUID())) {
             return;
         }
         BaseEvent event = EventRegistry.pickFor(player);
