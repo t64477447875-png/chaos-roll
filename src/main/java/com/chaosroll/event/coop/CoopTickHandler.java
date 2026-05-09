@@ -33,6 +33,127 @@ public final class CoopTickHandler {
         tickSharedHealth(server);
         tickTwinFate(server);
         tickHotPotato(server);
+        tickLifeline(server);
+        tickSpeedrun(server);
+        tickHungerGames(server);
+        tickBerserker(server);
+        tickExpiringMap(server, CoopState.BLOCK_ROULETTE);
+        tickExpiringMap(server, CoopState.CURSED_DAMAGE);
+    }
+
+    private static void tickLifeline(MinecraftServer server) {
+        if (CoopState.LIFELINE.isEmpty()) return;
+        int now = server.getTickCount();
+        Iterator<Map.Entry<UUID, CoopState.LifelineSession>> it = CoopState.LIFELINE.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<UUID, CoopState.LifelineSession> e = it.next();
+            CoopState.LifelineSession s = e.getValue();
+            ServerPlayer pa = server.getPlayerList().getPlayer(s.a);
+            ServerPlayer pb = server.getPlayerList().getPlayer(s.b);
+            if (now >= s.endTick) {
+                it.remove();
+                if (pa != null) pa.sendSystemMessage(Component.literal("[Chaos Roll] Прив'язка душ закінчилась."));
+                if (pb != null) pb.sendSystemMessage(Component.literal("[Chaos Roll] Прив'язка душ закінчилась."));
+                continue;
+            }
+            if (pa == null || pb == null) continue;
+            if (pa.isDeadOrDying() && pb.isAlive()) {
+                pb.kill();
+                pb.sendSystemMessage(Component.literal("[Chaos Roll] Твій напарник помер — і ти теж."));
+            } else if (pb.isDeadOrDying() && pa.isAlive()) {
+                pa.kill();
+                pa.sendSystemMessage(Component.literal("[Chaos Roll] Твій напарник помер — і ти теж."));
+            }
+        }
+    }
+
+    private static void tickSpeedrun(MinecraftServer server) {
+        CoopState.SpeedrunSession s = CoopState.SPEEDRUN;
+        if (s == null || s.ended) return;
+        int now = server.getTickCount();
+
+        for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+            double dx = p.getX() - (s.targetX + 0.5);
+            double dy = p.getY() - (s.targetY + 5);
+            double dz = p.getZ() - (s.targetZ + 0.5);
+            if (dx * dx + dy * dy + dz * dz < 9) {
+                s.ended = true;
+                p.getInventory().add(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD));
+                p.getInventory().add(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND_CHESTPLATE));
+                p.getInventory().add(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND, 8));
+                server.getPlayerList().broadcastSystemMessage(
+                        Component.literal("[Chaos Roll] " + p.getName().getString() + " виграв speedrun!"), false);
+                CoopState.SPEEDRUN = null;
+                return;
+            }
+        }
+
+        if (now >= s.endTick) {
+            s.ended = true;
+            for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+                p.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 3));
+            }
+            server.getPlayerList().broadcastSystemMessage(
+                    Component.literal("[Chaos Roll] Ніхто не встиг! Slow IV всім."), false);
+            CoopState.SPEEDRUN = null;
+        }
+    }
+
+    private static void tickHungerGames(MinecraftServer server) {
+        CoopState.HungerGamesSession s = CoopState.HUNGER_GAMES;
+        if (s == null || s.ended) return;
+        int now = server.getTickCount();
+        if (now < s.endTick) return;
+
+        s.ended = true;
+        ServerPlayer winner = null;
+        float best = -1f;
+        int alive = 0;
+        for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+            if (p.isAlive() && p.getHealth() > 0) {
+                alive++;
+                if (p.getHealth() > best) {
+                    best = p.getHealth();
+                    winner = p;
+                }
+            }
+        }
+        if (winner != null && alive >= 1) {
+            winner.getInventory().add(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND_HELMET));
+            winner.getInventory().add(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND_CHESTPLATE));
+            winner.getInventory().add(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND_LEGGINGS));
+            winner.getInventory().add(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND_BOOTS));
+            winner.getInventory().add(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD));
+            server.getPlayerList().broadcastSystemMessage(
+                    Component.literal("[Chaos Roll] HUNGER GAMES winner: " + winner.getName().getString() + "!"), false);
+        } else {
+            server.getPlayerList().broadcastSystemMessage(
+                    Component.literal("[Chaos Roll] HUNGER GAMES: ніхто не виграв."), false);
+        }
+        CoopState.HUNGER_GAMES = null;
+    }
+
+    private static void tickBerserker(MinecraftServer server) {
+        if (CoopState.BERSERKER.isEmpty()) return;
+        int now = server.getTickCount();
+        Iterator<Map.Entry<UUID, Integer>> it = CoopState.BERSERKER.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<UUID, Integer> e = it.next();
+            ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
+            if (p == null || now >= e.getValue()) {
+                it.remove();
+                continue;
+            }
+            if (now % 40 == 0) {
+                p.hurt(p.damageSources().magic(), 1.0f);
+            }
+        }
+    }
+
+    private static void tickExpiringMap(MinecraftServer server, Map<UUID, Integer> map) {
+        if (map.isEmpty()) return;
+        int now = server.getTickCount();
+        map.entrySet().removeIf(e -> now >= e.getValue());
     }
 
     private static void tickSharedHealth(MinecraftServer server) {

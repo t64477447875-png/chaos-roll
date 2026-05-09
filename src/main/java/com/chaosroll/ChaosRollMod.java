@@ -27,6 +27,7 @@ public class ChaosRollMod implements ModInitializer {
 
         ConfigManager.init();
         EventRegistry.bootstrap();
+        com.chaosroll.event.EventHooks.register();
         NetworkHandler.registerPayloads();
         CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) ->
                 ChaosRollCommand.register(dispatcher));

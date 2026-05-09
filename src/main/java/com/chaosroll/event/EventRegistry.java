@@ -3,22 +3,21 @@ package com.chaosroll.event;
 import com.chaosroll.ChaosRollMod;
 import com.chaosroll.config.ChaosRollConfig;
 import com.chaosroll.config.ConfigManager;
+import com.chaosroll.data.ChaosRollSavedData;
+import com.chaosroll.data.PlayerStats;
 import com.chaosroll.util.WeightedRandom;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 public final class EventRegistry {
 
     private static final List<BaseEvent> ALL_EVENTS = new ArrayList<>();
-    private static final Map<UUID, Integer> NEGATIVE_STREAK = new HashMap<>();
-    private static final Map<UUID, Integer> POSITIVE_STREAK = new HashMap<>();
 
     private EventRegistry() {}
 
@@ -42,12 +41,14 @@ public final class EventRegistry {
         return null;
     }
 
-    public static int getNegativeStreak(UUID id) {
-        return NEGATIVE_STREAK.getOrDefault(id, 0);
+    public static int getNegativeStreak(UUID id, MinecraftServer server) {
+        if (server == null) return 0;
+        return ChaosRollSavedData.get(server).negativeStreak.getOrDefault(id, 0);
     }
 
-    public static int getPositiveStreak(UUID id) {
-        return POSITIVE_STREAK.getOrDefault(id, 0);
+    public static int getPositiveStreak(UUID id, MinecraftServer server) {
+        if (server == null) return 0;
+        return ChaosRollSavedData.get(server).positiveStreak.getOrDefault(id, 0);
     }
 
     public static void bootstrap() {
@@ -62,9 +63,11 @@ public final class EventRegistry {
         Set<String> disabled = cfg.disabledEventIds == null
                 ? Set.of() : new HashSet<>(cfg.disabledEventIds);
 
+        MinecraftServer server = player.getServer();
+        ChaosRollSavedData data = server == null ? null : ChaosRollSavedData.get(server);
         UUID id = player.getUUID();
-        int negStreak = NEGATIVE_STREAK.getOrDefault(id, 0);
-        int posStreak = POSITIVE_STREAK.getOrDefault(id, 0);
+        int negStreak = data == null ? 0 : data.negativeStreak.getOrDefault(id, 0);
+        int posStreak = data == null ? 0 : data.positiveStreak.getOrDefault(id, 0);
         int maxNegStreak = Math.max(0, cfg.guaranteePositiveAfterNegativeStreak);
         int maxPosStreak = Math.max(0, cfg.guaranteeNonPositiveAfterPositiveStreak);
         boolean forcePositive = maxNegStreak > 0 && negStreak >= maxNegStreak;
@@ -92,18 +95,29 @@ public final class EventRegistry {
         }
         if (pool.isEmpty()) return null;
 
-        BaseEvent picked = WeightedRandom.pick(pool, ctx.random());
+        BaseEvent picked = WeightedRandom.pick(pool, ctx.random(), player);
         if (picked == null) return null;
 
-        if (picked.getType() == EventType.NEGATIVE) {
-            NEGATIVE_STREAK.merge(id, 1, Integer::sum);
-            POSITIVE_STREAK.put(id, 0);
-        } else if (picked.getType() == EventType.POSITIVE) {
-            POSITIVE_STREAK.merge(id, 1, Integer::sum);
-            NEGATIVE_STREAK.put(id, 0);
-        } else {
-            NEGATIVE_STREAK.put(id, 0);
-            POSITIVE_STREAK.put(id, 0);
+        if (data != null) {
+            if (picked.getType() == EventType.NEGATIVE) {
+                data.negativeStreak.merge(id, 1, Integer::sum);
+                data.positiveStreak.put(id, 0);
+            } else if (picked.getType() == EventType.POSITIVE) {
+                data.positiveStreak.merge(id, 1, Integer::sum);
+                data.negativeStreak.put(id, 0);
+            } else {
+                data.negativeStreak.put(id, 0);
+                data.positiveStreak.put(id, 0);
+            }
+            PlayerStats stats = data.getOrCreateStats(id);
+            stats.totalRolls++;
+            stats.byEventId.merge(picked.getId(), 1, Integer::sum);
+            switch (picked.getType()) {
+                case POSITIVE -> stats.positiveCount++;
+                case NEGATIVE -> stats.negativeCount++;
+                case CHAOTIC  -> stats.chaoticCount++;
+            }
+            data.setDirty();
         }
         return picked;
     }

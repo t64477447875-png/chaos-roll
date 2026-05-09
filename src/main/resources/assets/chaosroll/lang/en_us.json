@@ -1,4 +1,6 @@
 {
   "key.chaosroll.roll": "Roll Chaos Event",
+  "key.chaosroll.roll_mouse": "Roll Chaos Event (Mouse)",
+  "key.chaosroll.config_gui": "Open Chaos Roll Config",
   "category.chaosroll.main": "Chaos Roll"
 }

@@ -4,6 +4,7 @@ import com.chaosroll.ChaosRollMod;
 import com.chaosroll.client.hud.TimerState;
 import com.chaosroll.config.ConfigManager;
 import com.chaosroll.network.RollRequestPacket;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -13,6 +14,8 @@ import org.lwjgl.glfw.GLFW;
 public final class RollKeybind {
 
     public static KeyMapping ROLL_KEY;
+    public static KeyMapping MOUSE_ROLL_KEY;
+    public static KeyMapping CONFIG_GUI_KEY;
 
     private RollKeybind() {}
 
@@ -23,11 +26,35 @@ public final class RollKeybind {
                 "category.chaosroll.main"
         ));
 
+        MOUSE_ROLL_KEY = KeyBindingHelper.registerKeyBinding(new KeyMapping(
+                "key.chaosroll.roll_mouse",
+                InputConstants.Type.MOUSE,
+                GLFW.GLFW_MOUSE_BUTTON_4,
+                "category.chaosroll.main"
+        ));
+
+        CONFIG_GUI_KEY = KeyBindingHelper.registerKeyBinding(new KeyMapping(
+                "key.chaosroll.config_gui",
+                GLFW.GLFW_KEY_K,
+                "category.chaosroll.main"
+        ));
+
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (ROLL_KEY.consumeClick()) {
                 if (TimerState.isRollReady()) {
                     ChaosRollMod.LOGGER.info("[Chaos Roll] Roll key pressed - sending RollRequestPacket.");
                     ClientPlayNetworking.send(RollRequestPacket.INSTANCE);
+                }
+            }
+            while (MOUSE_ROLL_KEY.consumeClick()) {
+                if (TimerState.isRollReady()) {
+                    ChaosRollMod.LOGGER.info("[Chaos Roll] Mouse roll button pressed - sending RollRequestPacket.");
+                    ClientPlayNetworking.send(RollRequestPacket.INSTANCE);
+                }
+            }
+            while (CONFIG_GUI_KEY.consumeClick()) {
+                if (client.player != null && client.screen == null) {
+                    client.setScreen(new com.chaosroll.client.gui.ChaosRollConfigScreen(null));
                 }
             }
         });

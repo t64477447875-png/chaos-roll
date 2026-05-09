@@ -42,5 +42,7 @@ public final class ChaoticEvents {
         EventRegistry.register(new PiglinDealEvent());
         EventRegistry.register(new RouletteTeleportEvent());
         EventRegistry.register(new MobMultiplyEvent());
+        EventRegistry.register(new BerserkerEvent());
+        EventRegistry.register(new BlockRouletteEvent());
     }
 }

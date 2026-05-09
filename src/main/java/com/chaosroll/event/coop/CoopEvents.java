@@ -18,5 +18,10 @@ public final class CoopEvents {
         EventRegistry.register(new ArenaDuelEvent());
         EventRegistry.register(new CoopBossEvent());
         EventRegistry.register(new StructureTeleportEvent());
+        EventRegistry.register(new SpeedrunEvent());
+        EventRegistry.register(new LifelineEvent());
+        EventRegistry.register(new HungerGamesEvent());
+        EventRegistry.register(new VoteEvent());
+        EventRegistry.register(new ItemTradeEvent());
     }
 }

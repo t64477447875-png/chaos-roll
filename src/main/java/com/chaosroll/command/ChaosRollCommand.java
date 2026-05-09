@@ -61,7 +61,11 @@ public final class ChaosRollCommand {
                 .then(Commands.literal("list").executes(ChaosRollCommand::listEvents))
                 .then(Commands.literal("status")
                         .then(Commands.argument("player", EntityArgument.player())
-                                .executes(ChaosRollCommand::showStatus)));
+                                .executes(ChaosRollCommand::showStatus)))
+                .then(Commands.literal("stats")
+                        .executes(ctx -> showStats(ctx, ctx.getSource().getPlayerOrException()))
+                        .then(Commands.argument("player", EntityArgument.player())
+                                .executes(ctx -> showStats(ctx, EntityArgument.getPlayer(ctx, "player")))));
         dispatcher.register(root);
     }
 
@@ -145,18 +149,45 @@ public final class ChaosRollCommand {
         int seconds = RollTimerManager.getSecondsRemaining(id);
         boolean paused = RollTimerManager.isPaused(id);
         boolean ready = RollTimerManager.isRollReady(target);
-        int streak = EventRegistry.getNegativeStreak(id);
+        int streak = EventRegistry.getNegativeStreak(id, target.getServer());
+        int posStreak = EventRegistry.getPositiveStreak(id, target.getServer());
         List<String> active = ActiveEffectsManager.getActiveDisplayNames(id);
 
         info(ctx, "Status for " + target.getName().getString() + ":");
         info(ctx, "  Cooldown: " + (ready ? "READY" : seconds + "s remaining")
                 + (paused ? " (PAUSED)" : ""));
-        info(ctx, "  Negative streak: " + streak);
+        info(ctx, "  Negative streak: " + streak + ", Positive streak: " + posStreak);
         if (active.isEmpty()) {
             info(ctx, "  Active effects: none");
         } else {
             info(ctx, "  Active effects: " + String.join(", ", active));
         }
+        return 1;
+    }
+
+    private static int showStats(CommandContext<CommandSourceStack> ctx, ServerPlayer target) {
+        if (target == null || target.getServer() == null) {
+            error(ctx, "Player not found.");
+            return 0;
+        }
+        com.chaosroll.data.ChaosRollSavedData data =
+                com.chaosroll.data.ChaosRollSavedData.get(target.getServer());
+        com.chaosroll.data.PlayerStats s = data.stats.get(target.getUUID());
+        if (s == null || s.totalRolls == 0) {
+            info(ctx, "No stats yet for " + target.getName().getString() + ".");
+            return 1;
+        }
+        info(ctx, "Stats for " + target.getName().getString() + ":");
+        info(ctx, "  Total rolls: " + s.totalRolls);
+        int total = Math.max(1, s.totalRolls);
+        info(ctx, "  Positive: " + s.positiveCount + " (" + (s.positiveCount * 100 / total) + "%)");
+        info(ctx, "  Negative: " + s.negativeCount + " (" + (s.negativeCount * 100 / total) + "%)");
+        info(ctx, "  Chaotic:  " + s.chaoticCount + " (" + (s.chaoticCount * 100 / total) + "%)");
+        info(ctx, "  Top events:");
+        s.byEventId.entrySet().stream()
+                .sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+                .limit(5)
+                .forEach(e -> info(ctx, "    " + e.getKey() + " - " + e.getValue() + "x"));
         return 1;
     }
 
