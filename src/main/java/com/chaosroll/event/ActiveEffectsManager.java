@@ -47,6 +47,14 @@ public final class ActiveEffectsManager {
         sendTo(player);
     }
 
+    public static List<String> getActiveDisplayNames(UUID id) {
+        List<TrackedEffect> list = ACTIVE.get(id);
+        if (list == null) return List.of();
+        List<String> out = new ArrayList<>(list.size());
+        for (TrackedEffect t : list) out.add(t.displayName);
+        return out;
+    }
+
     public static void tick(MinecraftServer server) {
         long now = server.getTickCount();
         boolean anyChanged = false;

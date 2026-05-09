@@ -33,6 +33,18 @@ public final class EventRegistry {
         return ALL_EVENTS.size();
     }
 
+    public static BaseEvent getById(String id) {
+        if (id == null) return null;
+        for (BaseEvent e : ALL_EVENTS) {
+            if (e.getId().equals(id)) return e;
+        }
+        return null;
+    }
+
+    public static int getNegativeStreak(UUID id) {
+        return NEGATIVE_STREAK.getOrDefault(id, 0);
+    }
+
     public static void bootstrap() {
         Events.registerAll();
         ChaosRollMod.LOGGER.info("[Chaos Roll] Registered {} events.", ALL_EVENTS.size());
