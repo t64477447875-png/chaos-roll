@@ -11,12 +11,11 @@ public class EnderStashEvent extends BaseEvent {
     @Override public String getDisplayName() { return "Ендер-склад"; }
     @Override public EventType getType() { return EventType.POSITIVE; }
     @Override public EventRarity getRarity() { return EventRarity.COMMON; }
-    @Override public int getWeight() { return 50; }
+    @Override public int getWeight() { return 25; }
 
     @Override
     public void execute(EventContext context) {
-        InventoryUtil.giveOrDrop(context.player(), new ItemStack(Items.ENDER_CHEST));
-        InventoryUtil.giveOrDrop(context.player(), new ItemStack(Items.ENDER_PEARL, 8));
-        EventNotifyUtil.notifyPlayer(context.player(), this, "Ендер-сундук + 8 перлів");
+        InventoryUtil.giveOrDrop(context.player(), new ItemStack(Items.ENDER_PEARL, 4));
+        EventNotifyUtil.notifyPlayer(context.player(), this, "+4 ендер-перли");
     }
 }

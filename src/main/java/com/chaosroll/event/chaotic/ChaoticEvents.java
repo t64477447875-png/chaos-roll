@@ -37,5 +37,10 @@ public final class ChaoticEvents {
         EventRegistry.register(new BoatCircleEvent());
         EventRegistry.register(new TallPlayerEvent());
         EventRegistry.register(new VillagerSwarmEvent());
+        EventRegistry.register(new CowExplosionEvent());
+        EventRegistry.register(new InventoryShuffleEvent());
+        EventRegistry.register(new PiglinDealEvent());
+        EventRegistry.register(new RouletteTeleportEvent());
+        EventRegistry.register(new MobMultiplyEvent());
     }
 }

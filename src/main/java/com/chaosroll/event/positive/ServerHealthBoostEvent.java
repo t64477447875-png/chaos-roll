@@ -15,14 +15,14 @@ public class ServerHealthBoostEvent extends BaseEvent {
     @Override public String getDisplayName() { return "Глобальний приріст HP"; }
     @Override public EventType getType() { return EventType.POSITIVE; }
     @Override public EventRarity getRarity() { return EventRarity.LEGENDARY; }
-    @Override public int getWeight() { return 5; }
+    @Override public int getWeight() { return 2; }
     @Override public boolean isGlobal() { return true; }
-    @Override public int getDurationTicks() { return 6000; }
+    @Override public int getDurationTicks() { return 2400; }
 
     @Override
     public void execute(EventContext context) {
         var server = context.server();
-        AttributeModifier mod = new AttributeModifier(MOD_ID, 10.0, AttributeModifier.Operation.ADD_VALUE);
+        AttributeModifier mod = new AttributeModifier(MOD_ID, 4.0, AttributeModifier.Operation.ADD_VALUE);
 
         for (ServerPlayer p : server.getPlayerList().getPlayers()) {
             AttributeInstance attr = p.getAttribute(Attributes.MAX_HEALTH);
@@ -31,7 +31,7 @@ public class ServerHealthBoostEvent extends BaseEvent {
             attr.addTransientModifier(mod);
             p.setHealth(p.getMaxHealth());
         }
-        EventNotifyUtil.notifyAll(context.player(), this, "Усі гравці +10 HP на 5 хв!");
+        EventNotifyUtil.notifyAll(context.player(), this, "Усі гравці +4 HP на 2 хв!");
 
         com.chaosroll.event.ScheduledTaskManager.schedule(server, getDurationTicks(), srv -> {
             for (ServerPlayer p : srv.getPlayerList().getPlayers()) {

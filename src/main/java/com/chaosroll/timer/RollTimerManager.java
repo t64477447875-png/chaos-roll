@@ -68,6 +68,10 @@ public final class RollTimerManager {
             return;
         }
 
+        if (t.rolling) {
+            return;
+        }
+
         if (pausedAll || t.paused) {
             return;
         }
@@ -95,6 +99,7 @@ public final class RollTimerManager {
                 u -> new PlayerTimer(intervalTicks, false));
         t.ticksLeft = intervalTicks;
         t.rollReady = false;
+        t.rolling = false;
         sendSync(player);
     }
 
@@ -102,6 +107,11 @@ public final class RollTimerManager {
         PlayerTimer t = TIMERS.get(player.getUUID());
         if (t == null) return;
         t.rollReady = false;
+        t.rolling = true;
+        int intervalTicks = getRollIntervalSeconds() * TICKS_PER_SECOND;
+        if (t.ticksLeft <= 0) {
+            t.ticksLeft = intervalTicks;
+        }
         sendSync(player);
     }
 
@@ -125,11 +135,13 @@ public final class RollTimerManager {
         int ticksLeft;
         boolean rollReady;
         boolean paused;
+        boolean rolling;
 
         PlayerTimer(int ticksLeft, boolean rollReady) {
             this.ticksLeft = ticksLeft;
             this.rollReady = rollReady;
             this.paused = false;
+            this.rolling = false;
         }
     }
 }

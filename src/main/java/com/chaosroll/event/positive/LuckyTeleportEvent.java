@@ -9,7 +9,7 @@ public class LuckyTeleportEvent extends BaseEvent {
     @Override public String getDisplayName() { return "Щасливий телепорт"; }
     @Override public EventType getType() { return EventType.POSITIVE; }
     @Override public EventRarity getRarity() { return EventRarity.COMMON; }
-    @Override public int getWeight() { return 50; }
+    @Override public int getWeight() { return 30; }
 
     @Override
     public void execute(EventContext context) {

@@ -22,7 +22,7 @@ public class RandomEnchantEvent extends BaseEvent {
     @Override public String getDisplayName() { return "Випадкова зачарованість"; }
     @Override public EventType getType() { return EventType.POSITIVE; }
     @Override public EventRarity getRarity() { return EventRarity.COMMON; }
-    @Override public int getWeight() { return 50; }
+    @Override public int getWeight() { return 30; }
 
     @Override
     public void execute(EventContext context) {
@@ -34,7 +34,7 @@ public class RandomEnchantEvent extends BaseEvent {
         }
         ResourceKey<Enchantment> picked = POOL.get(context.random().nextInt(POOL.size()));
         try {
-            EventEnchantUtil.enchant(context.world(), held, picked, 3);
+            EventEnchantUtil.enchant(context.world(), held, picked, 1);
             EventNotifyUtil.notifyPlayer(player, this, "Випадкове зачарування додано!");
         } catch (Throwable err) {
             EventNotifyUtil.notifyPlayer(player, this, "Не вдалось додати зачарування");

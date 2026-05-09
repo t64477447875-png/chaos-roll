@@ -18,6 +18,7 @@ public final class EventRegistry {
 
     private static final List<BaseEvent> ALL_EVENTS = new ArrayList<>();
     private static final Map<UUID, Integer> NEGATIVE_STREAK = new HashMap<>();
+    private static final Map<UUID, Integer> POSITIVE_STREAK = new HashMap<>();
 
     private EventRegistry() {}
 
@@ -45,6 +46,10 @@ public final class EventRegistry {
         return NEGATIVE_STREAK.getOrDefault(id, 0);
     }
 
+    public static int getPositiveStreak(UUID id) {
+        return POSITIVE_STREAK.getOrDefault(id, 0);
+    }
+
     public static void bootstrap() {
         Events.registerAll();
         ChaosRollMod.LOGGER.info("[Chaos Roll] Registered {} events.", ALL_EVENTS.size());
@@ -58,9 +63,12 @@ public final class EventRegistry {
                 ? Set.of() : new HashSet<>(cfg.disabledEventIds);
 
         UUID id = player.getUUID();
-        int streak = NEGATIVE_STREAK.getOrDefault(id, 0);
-        int maxStreak = Math.max(0, cfg.guaranteePositiveAfterNegativeStreak);
-        boolean forcePositive = maxStreak > 0 && streak >= maxStreak;
+        int negStreak = NEGATIVE_STREAK.getOrDefault(id, 0);
+        int posStreak = POSITIVE_STREAK.getOrDefault(id, 0);
+        int maxNegStreak = Math.max(0, cfg.guaranteePositiveAfterNegativeStreak);
+        int maxPosStreak = Math.max(0, cfg.guaranteeNonPositiveAfterPositiveStreak);
+        boolean forcePositive = maxNegStreak > 0 && negStreak >= maxNegStreak;
+        boolean forceNonPositive = !forcePositive && maxPosStreak > 0 && posStreak >= maxPosStreak;
 
         List<BaseEvent> pool = new ArrayList<>();
         for (BaseEvent e : ALL_EVENTS) {
@@ -69,10 +77,11 @@ public final class EventRegistry {
             if (!cfg.globalEventsEnabled && e.isGlobal()) continue;
             if (!e.canExecute(ctx)) continue;
             if (forcePositive && e.getType() != EventType.POSITIVE) continue;
+            if (forceNonPositive && e.getType() == EventType.POSITIVE) continue;
             pool.add(e);
         }
 
-        if (pool.isEmpty() && forcePositive) {
+        if (pool.isEmpty() && (forcePositive || forceNonPositive)) {
             for (BaseEvent e : ALL_EVENTS) {
                 if (disabled.contains(e.getId())) continue;
                 if (!isTypeEnabled(cfg, e.getType())) continue;
@@ -88,8 +97,13 @@ public final class EventRegistry {
 
         if (picked.getType() == EventType.NEGATIVE) {
             NEGATIVE_STREAK.merge(id, 1, Integer::sum);
+            POSITIVE_STREAK.put(id, 0);
+        } else if (picked.getType() == EventType.POSITIVE) {
+            POSITIVE_STREAK.merge(id, 1, Integer::sum);
+            NEGATIVE_STREAK.put(id, 0);
         } else {
             NEGATIVE_STREAK.put(id, 0);
+            POSITIVE_STREAK.put(id, 0);
         }
         return picked;
     }

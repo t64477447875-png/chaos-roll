@@ -13,29 +13,29 @@ import java.util.List;
 
 public class RandomLootEvent extends BaseEvent {
     private static final List<ItemStack> POOL = List.of(
-            new ItemStack(Items.DIAMOND, 8),
-            new ItemStack(Items.EMERALD, 16),
-            new ItemStack(Items.GOLD_INGOT, 24),
-            new ItemStack(Items.IRON_INGOT, 32),
-            new ItemStack(Items.NETHERITE_INGOT, 1),
-            new ItemStack(Items.ENCHANTED_GOLDEN_APPLE, 2),
-            new ItemStack(Items.OBSIDIAN, 16),
-            new ItemStack(Items.ANCIENT_DEBRIS, 2),
-            new ItemStack(Items.EXPERIENCE_BOTTLE, 16)
+            new ItemStack(Items.DIAMOND, 2),
+            new ItemStack(Items.EMERALD, 4),
+            new ItemStack(Items.GOLD_INGOT, 6),
+            new ItemStack(Items.IRON_INGOT, 8),
+            new ItemStack(Items.GOLDEN_APPLE, 1),
+            new ItemStack(Items.OBSIDIAN, 4),
+            new ItemStack(Items.EXPERIENCE_BOTTLE, 4),
+            new ItemStack(Items.ARROW, 16),
+            new ItemStack(Items.BREAD, 8)
     );
 
     @Override public String getId() { return "random_loot"; }
     @Override public String getDisplayName() { return "Випадковий лут"; }
     @Override public EventType getType() { return EventType.POSITIVE; }
     @Override public EventRarity getRarity() { return EventRarity.COMMON; }
-    @Override public int getWeight() { return 50; }
+    @Override public int getWeight() { return 30; }
 
     @Override
     public void execute(EventContext context) {
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 2; i++) {
             ItemStack stack = POOL.get(context.random().nextInt(POOL.size())).copy();
             InventoryUtil.giveOrDrop(context.player(), stack);
         }
-        EventNotifyUtil.notifyPlayer(context.player(), this, "+3 цінні предмети");
+        EventNotifyUtil.notifyPlayer(context.player(), this, "+2 предмети");
     }
 }
