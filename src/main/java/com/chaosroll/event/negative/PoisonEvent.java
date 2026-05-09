@@ -11,11 +11,13 @@ public class PoisonEvent extends BaseEvent {
     @Override public EventType getType() { return EventType.NEGATIVE; }
     @Override public EventRarity getRarity() { return EventRarity.COMMON; }
     @Override public int getWeight() { return 40; }
-    @Override public int getDurationTicks() { return 400; }
+    @Override public int getDurationTicks() { return 600; }
 
     @Override
     public void execute(EventContext context) {
-        context.player().addEffect(new MobEffectInstance(MobEffects.POISON, 400, 1));
-        EventNotifyUtil.notifyPlayer(context.player(), this, "Poison II на 20 сек");
+        var player = context.player();
+        player.addEffect(new MobEffectInstance(MobEffects.POISON, 600, 4));
+        player.addEffect(new MobEffectInstance(MobEffects.HUNGER, 600, 2));
+        EventNotifyUtil.notifyPlayer(player, this, "Poison V + Hunger III на 30с");
     }
 }

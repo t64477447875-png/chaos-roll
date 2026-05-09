@@ -204,19 +204,11 @@ public class ArenaDuelEvent extends BaseEvent {
         if (pb != null) pb.teleportTo(session.startBX, session.startBY, session.startBZ);
 
         if (loser != null) {
-            float punish = noFight ? 5.0f : 5.0f;
-            loser.setHealth(Math.max(1.0f, loser.getMaxHealth() - punish * 4));
-            loser.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 4));
-            if (noFight) {
-                loser.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 200, 0));
-                loser.setHealth(1.0f);
-            }
-            String reason = noFight
-                    ? "відмовилися битися — кара (1 HP, Slowness V, Blindness 10с)"
-                    : "програв дуель (низьке HP, Slowness V 10с)";
+            String reason = noFight ? "відмовилися битися — СМЕРТЬ" : "програв дуель — СМЕРТЬ";
             server.getPlayerList().broadcastSystemMessage(
                     Component.literal("[Chaos Roll] " + loser.getName().getString() + " " + reason)
-                            .withStyle(ChatFormatting.RED), false);
+                            .withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD), false);
+            loser.kill();
         } else {
             server.getPlayerList().broadcastSystemMessage(
                     Component.literal("[Chaos Roll] Дуель завершилася в нічию.")

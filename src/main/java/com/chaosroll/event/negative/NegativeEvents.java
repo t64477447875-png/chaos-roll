@@ -32,5 +32,6 @@ public final class NegativeEvents {
         EventRegistry.register(new BrokenLegsEvent());
         EventRegistry.register(new MidnightCurseEvent());
         EventRegistry.register(new HallucinationEvent());
+        EventRegistry.register(new DeathRollEvent());
     }
 }
