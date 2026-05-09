@@ -2,6 +2,7 @@ package com.chaosroll;
 
 import com.chaosroll.event.EventRegistry;
 import com.chaosroll.event.ScheduledTaskManager;
+import com.chaosroll.event.coop.CoopTickHandler;
 import com.chaosroll.network.NetworkHandler;
 import com.chaosroll.timer.RollTimerManager;
 import net.fabricmc.api.ModInitializer;
@@ -31,6 +32,7 @@ public class ChaosRollMod implements ModInitializer {
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             ScheduledTaskManager.tick(server);
+            CoopTickHandler.tick(server);
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
                 RollTimerManager.tickPlayer(player);
             }
