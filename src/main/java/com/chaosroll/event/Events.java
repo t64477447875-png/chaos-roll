@@ -1,6 +1,7 @@
 package com.chaosroll.event;
 
 import com.chaosroll.event.chaotic.ChaoticEvents;
+import com.chaosroll.event.coop.CoopEvents;
 import com.chaosroll.event.negative.NegativeEvents;
 import com.chaosroll.event.positive.PositiveEvents;
 
@@ -12,5 +13,6 @@ public final class Events {
         PositiveEvents.registerAll();
         NegativeEvents.registerAll();
         ChaoticEvents.registerAll();
+        CoopEvents.registerAll();
     }
 }
