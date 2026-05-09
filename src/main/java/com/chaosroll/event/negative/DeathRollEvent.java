@@ -1,5 +1,6 @@
 package com.chaosroll.event.negative;
 
+import com.chaosroll.config.ConfigManager;
 import com.chaosroll.event.*;
 import com.chaosroll.event.ScheduledTaskManager;
 import com.chaosroll.util.EventNotifyUtil;
@@ -18,6 +19,12 @@ public class DeathRollEvent extends BaseEvent {
     @Override public EventType getType() { return EventType.NEGATIVE; }
     @Override public EventRarity getRarity() { return EventRarity.LEGENDARY; }
     @Override public int getWeight() { return 3; }
+
+    @Override
+    public boolean canExecute(EventContext context) {
+        if (ConfigManager.get().preventDirectDeath) return false;
+        return super.canExecute(context);
+    }
 
     @Override
     public void execute(EventContext context) {

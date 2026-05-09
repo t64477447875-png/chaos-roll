@@ -1,6 +1,7 @@
 package com.chaosroll.network;
 
 import com.chaosroll.ChaosRollMod;
+import com.chaosroll.config.ConfigManager;
 import com.chaosroll.event.ActiveEffectsManager;
 import com.chaosroll.event.BaseEvent;
 import com.chaosroll.event.EventContext;
@@ -38,6 +39,7 @@ public final class NetworkHandler {
 
     private static void broadcastGlobalEvent(ServerPlayer initiator, BaseEvent event) {
         if (initiator.getServer() == null) return;
+        if (!ConfigManager.get().globalEventsEnabled) return;
         GlobalEventPacket packet = new GlobalEventPacket(
                 initiator.getName().getString(),
                 event.getId(),
@@ -79,8 +81,8 @@ public final class NetworkHandler {
             return;
         }
 
-        spawnResultParticles(player, event);
-        playResultSound(player, event);
+        if (ConfigManager.get().enableParticles) spawnResultParticles(player, event);
+        if (ConfigManager.get().enableSounds) playResultSound(player, event);
 
         ScheduledTaskManager.schedule(server, ANIMATION_DURATION_TICKS, srv -> {
             ServerPlayer current = srv.getPlayerList().getPlayer(player.getUUID());
