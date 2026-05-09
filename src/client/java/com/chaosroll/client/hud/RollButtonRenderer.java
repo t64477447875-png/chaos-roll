@@ -10,6 +10,7 @@ public final class RollButtonRenderer {
 
     public static void render(GuiGraphics ctx) {
         if (!TimerState.isRollReady()) return;
+        if (RollAnimationState.isActive()) return;
 
         Minecraft mc = Minecraft.getInstance();
         if (mc.options.hideGui) return;
