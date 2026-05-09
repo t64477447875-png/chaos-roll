@@ -9,24 +9,23 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
 
 public class FullDiamondArmorEvent extends BaseEvent {
-    @Override public String getId() { return "full_diamond_armor"; }
-    @Override public String getDisplayName() { return "Повний алмазний обладунок"; }
+    @Override public String getId() { return "full_iron_armor"; }
+    @Override public String getDisplayName() { return "Залізний обладунок"; }
     @Override public EventType getType() { return EventType.POSITIVE; }
-    @Override public EventRarity getRarity() { return EventRarity.RARE; }
-    @Override public int getWeight() { return 22; }
+    @Override public EventRarity getRarity() { return EventRarity.COMMON; }
+    @Override public int getWeight() { return 14; }
 
     @Override
     public void execute(EventContext context) {
         var level = context.world();
-        ItemStack helm = EventEnchantUtil.enchant(level, new ItemStack(Items.DIAMOND_HELMET), Enchantments.PROTECTION, 4);
-        ItemStack chest = EventEnchantUtil.enchant(level, new ItemStack(Items.DIAMOND_CHESTPLATE), Enchantments.PROTECTION, 4);
-        ItemStack legs = EventEnchantUtil.enchant(level, new ItemStack(Items.DIAMOND_LEGGINGS), Enchantments.PROTECTION, 4);
-        ItemStack boots = EventEnchantUtil.enchant(level, new ItemStack(Items.DIAMOND_BOOTS), Enchantments.PROTECTION, 4);
-        EventEnchantUtil.enchant(level, boots, Enchantments.FEATHER_FALLING, 4);
+        ItemStack helm = EventEnchantUtil.enchant(level, new ItemStack(Items.IRON_HELMET), Enchantments.PROTECTION, 1);
+        ItemStack chest = EventEnchantUtil.enchant(level, new ItemStack(Items.IRON_CHESTPLATE), Enchantments.PROTECTION, 1);
+        ItemStack legs = EventEnchantUtil.enchant(level, new ItemStack(Items.IRON_LEGGINGS), Enchantments.PROTECTION, 1);
+        ItemStack boots = new ItemStack(Items.IRON_BOOTS);
         InventoryUtil.giveOrDrop(context.player(), helm);
         InventoryUtil.giveOrDrop(context.player(), chest);
         InventoryUtil.giveOrDrop(context.player(), legs);
         InventoryUtil.giveOrDrop(context.player(), boots);
-        EventNotifyUtil.notifyPlayer(context.player(), this, "Повний обладунок з Protection IV");
+        EventNotifyUtil.notifyPlayer(context.player(), this, "Залізний обладунок з Protection I");
     }
 }

@@ -10,13 +10,13 @@ public class ElytraGiftEvent extends BaseEvent {
     @Override public String getId() { return "elytra_gift"; }
     @Override public String getDisplayName() { return "Елітра в подарунок"; }
     @Override public EventType getType() { return EventType.POSITIVE; }
-    @Override public EventRarity getRarity() { return EventRarity.RARE; }
-    @Override public int getWeight() { return 18; }
+    @Override public EventRarity getRarity() { return EventRarity.LEGENDARY; }
+    @Override public int getWeight() { return 4; }
 
     @Override
     public void execute(EventContext context) {
         InventoryUtil.giveOrDrop(context.player(), new ItemStack(Items.ELYTRA));
-        InventoryUtil.giveOrDrop(context.player(), new ItemStack(Items.FIREWORK_ROCKET, 32));
-        EventNotifyUtil.notifyPlayer(context.player(), this, "Елітра + 32 ракети");
+        InventoryUtil.giveOrDrop(context.player(), new ItemStack(Items.FIREWORK_ROCKET, 8));
+        EventNotifyUtil.notifyPlayer(context.player(), this, "Елітра + 8 ракет");
     }
 }

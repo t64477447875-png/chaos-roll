@@ -16,7 +16,7 @@ public class TreasureMapEvent extends BaseEvent {
     @Override public String getDisplayName() { return "Карта скарбів"; }
     @Override public EventType getType() { return EventType.POSITIVE; }
     @Override public EventRarity getRarity() { return EventRarity.COMMON; }
-    @Override public int getWeight() { return 40; }
+    @Override public int getWeight() { return 20; }
 
     @Override
     public void execute(EventContext context) {

@@ -10,12 +10,12 @@ public class TotemPackEvent extends BaseEvent {
     @Override public String getId() { return "totem_pack"; }
     @Override public String getDisplayName() { return "Тотеми безсмертя"; }
     @Override public EventType getType() { return EventType.POSITIVE; }
-    @Override public EventRarity getRarity() { return EventRarity.COMMON; }
-    @Override public int getWeight() { return 30; }
+    @Override public EventRarity getRarity() { return EventRarity.RARE; }
+    @Override public int getWeight() { return 8; }
 
     @Override
     public void execute(EventContext context) {
-        InventoryUtil.giveOrDrop(context.player(), new ItemStack(Items.TOTEM_OF_UNDYING, 3));
-        EventNotifyUtil.notifyPlayer(context.player(), this, "+3 тотеми безсмертя");
+        InventoryUtil.giveOrDrop(context.player(), new ItemStack(Items.TOTEM_OF_UNDYING, 1));
+        EventNotifyUtil.notifyPlayer(context.player(), this, "+1 тотем безсмертя");
     }
 }

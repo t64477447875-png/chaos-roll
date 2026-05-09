@@ -12,8 +12,8 @@ public class GentleFlightEvent extends BaseEvent {
     @Override public String getDisplayName() { return "Тимчасовий політ"; }
     @Override public EventType getType() { return EventType.POSITIVE; }
     @Override public EventRarity getRarity() { return EventRarity.RARE; }
-    @Override public int getWeight() { return 25; }
-    @Override public int getDurationTicks() { return 600; }
+    @Override public int getWeight() { return 12; }
+    @Override public int getDurationTicks() { return 300; }
 
     @Override
     public void execute(EventContext context) {
@@ -33,6 +33,6 @@ public class GentleFlightEvent extends BaseEvent {
                 p.onUpdateAbilities();
             }
         });
-        EventNotifyUtil.notifyPlayer(player, this, "30 сек політу (натисни 2x пробіл)");
+        EventNotifyUtil.notifyPlayer(player, this, "15 сек політу (натисни 2x пробіл)");
     }
 }

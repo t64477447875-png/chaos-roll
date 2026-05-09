@@ -33,5 +33,10 @@ public final class NegativeEvents {
         EventRegistry.register(new MidnightCurseEvent());
         EventRegistry.register(new HallucinationEvent());
         EventRegistry.register(new DeathRollEvent());
+        EventRegistry.register(new ExileTeleportEvent());
+        EventRegistry.register(new FireballRainEvent());
+        EventRegistry.register(new VindicatorAmbushEvent());
+        EventRegistry.register(new CursedSpawnEvent());
+        EventRegistry.register(new EarthquakeEvent());
     }
 }

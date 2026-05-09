@@ -13,7 +13,7 @@ public class MaxHorseEvent extends BaseEvent {
     @Override public String getDisplayName() { return "Топ-кінь"; }
     @Override public EventType getType() { return EventType.POSITIVE; }
     @Override public EventRarity getRarity() { return EventRarity.RARE; }
-    @Override public int getWeight() { return 20; }
+    @Override public int getWeight() { return 10; }
 
     @Override
     public void execute(EventContext context) {

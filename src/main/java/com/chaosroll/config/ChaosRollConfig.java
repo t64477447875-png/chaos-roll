@@ -8,15 +8,16 @@ public final class ChaosRollConfig {
     public int rollIntervalSeconds = 60;
     public String rollKey = "R";
     public String balanceMode = "balanced";
-    public int positiveWeight = 50;
-    public int negativeWeight = 35;
-    public int chaoticWeight = 15;
+    public int positiveWeight = 30;
+    public int negativeWeight = 40;
+    public int chaoticWeight = 30;
     public boolean enablePositiveEvents = true;
     public boolean enableNegativeEvents = true;
     public boolean enableChaoticEvents = true;
     public List<String> disabledEventIds = new ArrayList<>();
     public boolean preventDirectDeath = false;
     public int guaranteePositiveAfterNegativeStreak = 3;
+    public int guaranteeNonPositiveAfterPositiveStreak = 2;
     public boolean showTimerBar = true;
     public boolean showActiveEffectsPanel = true;
     public boolean enableRollAnimation = true;
@@ -39,6 +40,7 @@ public final class ChaosRollConfig {
         c.disabledEventIds = new ArrayList<>(disabledEventIds);
         c.preventDirectDeath = preventDirectDeath;
         c.guaranteePositiveAfterNegativeStreak = guaranteePositiveAfterNegativeStreak;
+        c.guaranteeNonPositiveAfterPositiveStreak = guaranteeNonPositiveAfterPositiveStreak;
         c.showTimerBar = showTimerBar;
         c.showActiveEffectsPanel = showActiveEffectsPanel;
         c.enableRollAnimation = enableRollAnimation;
@@ -64,6 +66,7 @@ public final class ChaosRollConfig {
         }
         if (disabledEventIds == null) disabledEventIds = new ArrayList<>();
         if (guaranteePositiveAfterNegativeStreak < 0) guaranteePositiveAfterNegativeStreak = defaults.guaranteePositiveAfterNegativeStreak;
+        if (guaranteeNonPositiveAfterPositiveStreak < 0) guaranteeNonPositiveAfterPositiveStreak = defaults.guaranteeNonPositiveAfterPositiveStreak;
         if (maxActiveEffects < 1 || maxActiveEffects > 32) maxActiveEffects = defaults.maxActiveEffects;
     }
 
