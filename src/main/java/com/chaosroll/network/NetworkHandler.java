@@ -1,6 +1,7 @@
 package com.chaosroll.network;
 
 import com.chaosroll.ChaosRollMod;
+import com.chaosroll.event.ActiveEffectsManager;
 import com.chaosroll.event.BaseEvent;
 import com.chaosroll.event.EventContext;
 import com.chaosroll.event.EventRegistry;
@@ -26,11 +27,26 @@ public final class NetworkHandler {
     public static void registerPayloads() {
         PayloadTypeRegistry.playS2C().register(TimerSyncPacket.TYPE, TimerSyncPacket.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(RollResultPacket.TYPE, RollResultPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(GlobalEventPacket.TYPE, GlobalEventPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(ActiveEffectsPacket.TYPE, ActiveEffectsPacket.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(RollRequestPacket.TYPE, RollRequestPacket.STREAM_CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(RollRequestPacket.TYPE, (payload, context) -> {
             context.player().getServer().execute(() -> handleRollRequest(context.player()));
         });
+    }
+
+    private static void broadcastGlobalEvent(ServerPlayer initiator, BaseEvent event) {
+        if (initiator.getServer() == null) return;
+        GlobalEventPacket packet = new GlobalEventPacket(
+                initiator.getName().getString(),
+                event.getId(),
+                event.getDisplayName(),
+                event.getType().ordinal(),
+                event.getRarity().ordinal());
+        for (ServerPlayer p : initiator.getServer().getPlayerList().getPlayers()) {
+            ServerPlayNetworking.send(p, packet);
+        }
     }
 
     private static void handleRollRequest(ServerPlayer player) {
@@ -71,7 +87,22 @@ public final class NetworkHandler {
             if (current == null) return;
             executeEvent(event, current);
             RollTimerManager.resetPlayer(current);
+            registerActiveEffect(srv, current, event);
+            if (event.isGlobal()) {
+                broadcastGlobalEvent(current, event);
+            }
         });
+    }
+
+    private static void registerActiveEffect(MinecraftServer server, ServerPlayer initiator, BaseEvent event) {
+        if (event.getDurationTicks() <= 0) return;
+        if (event.isGlobal()) {
+            for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+                ActiveEffectsManager.register(p, event);
+            }
+        } else {
+            ActiveEffectsManager.register(initiator, event);
+        }
     }
 
     private static void executeEvent(BaseEvent event, ServerPlayer player) {
