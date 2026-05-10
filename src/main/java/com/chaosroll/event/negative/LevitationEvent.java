@@ -1,13 +1,9 @@
 package com.chaosroll.event.negative;
 
 import com.chaosroll.event.*;
-import com.chaosroll.event.ScheduledTaskManager;
 import com.chaosroll.util.EventNotifyUtil;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-
-import java.util.UUID;
 
 public class LevitationEvent extends BaseEvent {
     @Override public String getId() { return "levitation"; }
@@ -19,12 +15,7 @@ public class LevitationEvent extends BaseEvent {
     @Override
     public void execute(EventContext context) {
         var player = context.player();
-        UUID id = player.getUUID();
-        player.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 200, 1));
-        ScheduledTaskManager.schedule(context.server(), 200, srv -> {
-            ServerPlayer p = srv.getPlayerList().getPlayer(id);
-            if (p != null) p.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 300, 0));
-        });
-        EventNotifyUtil.notifyPlayer(player, this, "Левітація вгору, потім повільне падіння");
+        player.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 200, 2));
+        EventNotifyUtil.notifyPlayer(player, this, "Левітація III — без парашута, готуйся до падіння");
     }
 }
