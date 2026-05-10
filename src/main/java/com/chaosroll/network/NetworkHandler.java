@@ -140,16 +140,41 @@ public final class NetworkHandler {
         if (ConfigManager.get().enableParticles) spawnResultParticles(player, event);
         if (ConfigManager.get().enableSounds) playResultSound(player, event);
 
+        startVoteIfApplicable(player, event);
+
         ScheduledTaskManager.schedule(server, ANIMATION_DURATION_TICKS, srv -> {
             ServerPlayer current = srv.getPlayerList().getPlayer(player.getUUID());
             if (current == null) return;
-            executeEvent(event, current);
+            BaseEvent finalEvent = resolveEventAfterVote(srv, current, event);
+            executeEvent(finalEvent, current);
             RollTimerManager.resetPlayer(current);
-            registerActiveEffect(srv, current, event);
-            if (event.isGlobal()) {
-                broadcastGlobalEvent(current, event);
+            registerActiveEffect(srv, current, finalEvent);
+            if (finalEvent.isGlobal()) {
+                broadcastGlobalEvent(current, finalEvent);
             }
+            com.chaosroll.vote.VoteManager.clearVote();
+            com.chaosroll.achievement.AchievementManager.recordRoll(current, finalEvent);
         });
+    }
+
+    private static void startVoteIfApplicable(ServerPlayer initiator, BaseEvent event) {
+        if (initiator.getServer() == null) return;
+        if (initiator.getServer().getPlayerList().getPlayers().size() <= 1) return;
+        if (event.getType() == com.chaosroll.event.EventType.POSITIVE) return;
+        com.chaosroll.vote.VoteManager.startVote(initiator, event);
+    }
+
+    private static BaseEvent resolveEventAfterVote(MinecraftServer server, ServerPlayer player, BaseEvent original) {
+        if (!com.chaosroll.vote.VoteManager.shouldSkip(server)) return original;
+        BaseEvent replacement = EventRegistry.pickFor(player);
+        if (replacement == null) return original;
+        for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+            p.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                    "§6[Chaos Roll] §aПодію '" + original.getDisplayName() +
+                            "' пропущено голосуванням → §e" + replacement.getDisplayName()));
+        }
+        com.chaosroll.achievement.AchievementManager.recordVoteSkipped(server);
+        return replacement;
     }
 
     public static void handleRollRequest(ServerPlayer player) {
@@ -188,15 +213,20 @@ public final class NetworkHandler {
         if (ConfigManager.get().enableParticles) spawnResultParticles(player, event);
         if (ConfigManager.get().enableSounds) playResultSound(player, event);
 
+        startVoteIfApplicable(player, event);
+
         ScheduledTaskManager.schedule(server, ANIMATION_DURATION_TICKS, srv -> {
             ServerPlayer current = srv.getPlayerList().getPlayer(player.getUUID());
             if (current == null) return;
-            executeEvent(event, current);
+            BaseEvent finalEvent = resolveEventAfterVote(srv, current, event);
+            executeEvent(finalEvent, current);
             RollTimerManager.resetPlayer(current);
-            registerActiveEffect(srv, current, event);
-            if (event.isGlobal()) {
-                broadcastGlobalEvent(current, event);
+            registerActiveEffect(srv, current, finalEvent);
+            if (finalEvent.isGlobal()) {
+                broadcastGlobalEvent(current, finalEvent);
             }
+            com.chaosroll.vote.VoteManager.clearVote();
+            com.chaosroll.achievement.AchievementManager.recordRoll(current, finalEvent);
         });
     }
 

@@ -41,7 +41,189 @@ public final class CoopTickHandler {
         tickExpiringMap(server, CoopState.CURSED_DAMAGE);
         tickExpiringMap(server, CoopState.DOUBLE_DROPS);
         tickExpiringMap(server, CoopState.RANDOM_LOOT);
+        tickExpiringMap(server, CoopState.MIDAS_TOUCH);
         tickPathBuilder(server);
+        tickIronLung(server);
+        tickMagnetCurse(server);
+        tickEffectCasino(server);
+        tickRocketBoots(server);
+        tickStaticShock(server);
+        tickDirectionLock(server);
+        tickMorph(server);
+    }
+
+    private static void tickIronLung(MinecraftServer server) {
+        if (CoopState.IRON_LUNG.isEmpty()) return;
+        int now = server.getTickCount();
+        Iterator<Map.Entry<UUID, Integer>> it = CoopState.IRON_LUNG.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<UUID, Integer> e = it.next();
+            if (now >= e.getValue()) {
+                it.remove();
+                ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
+                if (p != null) p.setAirSupply(p.getMaxAirSupply());
+                continue;
+            }
+            ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
+            if (p == null) continue;
+            if (p.isInWater()) continue;
+            int air = p.getAirSupply();
+            p.setAirSupply(Math.max(-20, air - 4));
+            if (p.getAirSupply() <= -20 && now % 20 == 0) {
+                p.hurt(p.damageSources().drown(), 2.0f);
+                p.setAirSupply(0);
+            }
+        }
+    }
+
+    private static void tickMagnetCurse(MinecraftServer server) {
+        if (CoopState.MAGNET_CURSE.isEmpty()) return;
+        int now = server.getTickCount();
+        Iterator<Map.Entry<UUID, Integer>> it = CoopState.MAGNET_CURSE.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<UUID, Integer> e = it.next();
+            if (now >= e.getValue()) {
+                it.remove();
+                continue;
+            }
+            ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
+            if (p == null) continue;
+            if (now % 100 != 0) continue;
+            ItemStack inHand = p.getMainHandItem();
+            if (!inHand.isEmpty()) {
+                p.drop(inHand.copy(), false, true);
+                inHand.setCount(0);
+                p.containerMenu.broadcastChanges();
+            }
+        }
+    }
+
+    private static void tickEffectCasino(MinecraftServer server) {
+        if (CoopState.EFFECT_CASINO.isEmpty()) return;
+        int now = server.getTickCount();
+        java.util.Random rng = new java.util.Random();
+        net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect>[] pool =
+                new net.minecraft.core.Holder[]{
+                        MobEffects.MOVEMENT_SPEED, MobEffects.MOVEMENT_SLOWDOWN,
+                        MobEffects.JUMP, MobEffects.WEAKNESS,
+                        MobEffects.DIG_SPEED, MobEffects.DIG_SLOWDOWN,
+                        MobEffects.DAMAGE_RESISTANCE, MobEffects.POISON,
+                        MobEffects.REGENERATION, MobEffects.NIGHT_VISION,
+                        MobEffects.GLOWING, MobEffects.HUNGER,
+                        MobEffects.WATER_BREATHING, MobEffects.LUCK,
+                        MobEffects.UNLUCK, MobEffects.SLOW_FALLING
+                };
+        Iterator<Map.Entry<UUID, Integer>> it = CoopState.EFFECT_CASINO.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<UUID, Integer> e = it.next();
+            if (now >= e.getValue()) {
+                it.remove();
+                continue;
+            }
+            ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
+            if (p == null) continue;
+            if (now % 100 != 0) continue;
+            var picked = pool[rng.nextInt(pool.length)];
+            int amp = rng.nextInt(2);
+            p.addEffect(new MobEffectInstance(picked, 120, amp));
+        }
+    }
+
+    private static void tickRocketBoots(MinecraftServer server) {
+        if (CoopState.ROCKET_BOOTS.isEmpty()) return;
+        int now = server.getTickCount();
+        Iterator<Map.Entry<UUID, Integer>> it = CoopState.ROCKET_BOOTS.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<UUID, Integer> e = it.next();
+            if (now >= e.getValue()) {
+                it.remove();
+                continue;
+            }
+            ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
+            if (p == null) continue;
+            if (p.getDeltaMovement().y > 0.3 && !p.onGround()) {
+                var dm = p.getDeltaMovement();
+                p.setDeltaMovement(dm.x, Math.max(dm.y, 1.6), dm.z);
+                p.connection.send(new net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket(p));
+                p.fallDistance = 0;
+            }
+        }
+    }
+
+    private static void tickStaticShock(MinecraftServer server) {
+        if (CoopState.STATIC_SHOCK.isEmpty()) return;
+        int now = server.getTickCount();
+        Iterator<Map.Entry<UUID, Integer>> it = CoopState.STATIC_SHOCK.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<UUID, Integer> e = it.next();
+            if (now >= e.getValue()) {
+                it.remove();
+                continue;
+            }
+            ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
+            if (p == null) continue;
+            if (now % 100 != 0) continue;
+            ServerLevel lvl = p.serverLevel();
+            net.minecraft.world.entity.LightningBolt bolt =
+                    net.minecraft.world.entity.EntityType.LIGHTNING_BOLT.create(lvl);
+            if (bolt != null) {
+                bolt.moveTo(p.getX(), p.getY(), p.getZ());
+                lvl.addFreshEntity(bolt);
+            }
+        }
+    }
+
+    private static void tickDirectionLock(MinecraftServer server) {
+        if (CoopState.DIRECTION_LOCK.isEmpty()) return;
+        int now = server.getTickCount();
+        Iterator<Map.Entry<UUID, CoopState.DirectionLock>> it = CoopState.DIRECTION_LOCK.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<UUID, CoopState.DirectionLock> e = it.next();
+            CoopState.DirectionLock dl = e.getValue();
+            if (now >= dl.endTick) {
+                it.remove();
+                continue;
+            }
+            ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
+            if (p == null) continue;
+            p.connection.teleport(p.getX(), p.getY(), p.getZ(), dl.lockedYaw, p.getXRot());
+        }
+    }
+
+    private static void tickMorph(MinecraftServer server) {
+        if (CoopState.MORPH.isEmpty()) return;
+        int now = server.getTickCount();
+        Iterator<Map.Entry<UUID, CoopState.MorphSession>> it = CoopState.MORPH.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<UUID, CoopState.MorphSession> e = it.next();
+            CoopState.MorphSession ms = e.getValue();
+            ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
+            if (now >= ms.endTick || p == null) {
+                it.remove();
+                if (p != null) {
+                    ServerLevel lvl = p.serverLevel();
+                    var ent = lvl.getEntity(ms.mobUuid);
+                    if (ent != null) ent.discard();
+                    p.removeEffect(MobEffects.INVISIBILITY);
+                } else {
+                    for (ServerLevel lvl : server.getAllLevels()) {
+                        var ent = lvl.getEntity(ms.mobUuid);
+                        if (ent != null) { ent.discard(); break; }
+                    }
+                }
+                continue;
+            }
+            ServerLevel lvl = p.serverLevel();
+            var ent = lvl.getEntity(ms.mobUuid);
+            if (ent == null) {
+                it.remove();
+                p.removeEffect(MobEffects.INVISIBILITY);
+                continue;
+            }
+            ent.moveTo(p.getX(), p.getY(), p.getZ(), p.getYRot(), p.getXRot());
+            ent.setYHeadRot(p.getYHeadRot());
+            ent.setOnGround(p.onGround());
+        }
     }
 
     private static void tickPathBuilder(MinecraftServer server) {

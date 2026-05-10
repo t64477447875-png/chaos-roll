@@ -52,5 +52,10 @@ public final class ChaoticEvents {
         EventRegistry.register(new BlockStormEvent());
         EventRegistry.register(new LootRouletteEvent());
         EventRegistry.register(new PathBuilderEvent());
+        EventRegistry.register(new RandomEffectCasinoEvent());
+        EventRegistry.register(new InventoryRecycleEvent());
+        EventRegistry.register(new RocketBootsEvent());
+        EventRegistry.register(new StaticShockEvent());
+        EventRegistry.register(new DirectionLockEvent());
     }
 }

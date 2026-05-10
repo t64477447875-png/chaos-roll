@@ -31,5 +31,8 @@ public final class PositiveEvents {
         EventRegistry.register(new MiningFrenzyEvent());
         EventRegistry.register(new TreasureBurstEvent());
         EventRegistry.register(new PhoenixRiseEvent());
+        EventRegistry.register(new MidasTouchEvent());
+        EventRegistry.register(new GuardianAngelEvent());
+        EventRegistry.register(new HomeBeaconEvent());
     }
 }
