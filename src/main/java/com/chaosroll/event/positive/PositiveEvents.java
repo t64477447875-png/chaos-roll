@@ -34,5 +34,7 @@ public final class PositiveEvents {
         EventRegistry.register(new MidasTouchEvent());
         EventRegistry.register(new GuardianAngelEvent());
         EventRegistry.register(new HomeBeaconEvent());
+        EventRegistry.register(new AutoMineEvent());
+        EventRegistry.register(new EmeraldShowerEvent());
     }
 }

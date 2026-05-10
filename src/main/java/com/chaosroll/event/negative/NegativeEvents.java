@@ -51,5 +51,7 @@ public final class NegativeEvents {
         EventRegistry.register(new MagnetCurseEvent());
         EventRegistry.register(new TotalDarknessEvent());
         EventRegistry.register(new SoulBurnEvent());
+        EventRegistry.register(new CursedAnvilEvent());
+        EventRegistry.register(new RandomTpDownEvent());
     }
 }

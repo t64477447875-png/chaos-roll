@@ -57,5 +57,15 @@ public final class ChaoticEvents {
         EventRegistry.register(new RocketBootsEvent());
         EventRegistry.register(new StaticShockEvent());
         EventRegistry.register(new DirectionLockEvent());
+        EventRegistry.register(new MeteorStormEvent());
+        EventRegistry.register(new StickyWorldEvent());
+        EventRegistry.register(new EchoCloneEvent());
+        EventRegistry.register(new MysteryGiftEvent());
+        EventRegistry.register(new TimeFreezeEvent());
+        EventRegistry.register(new BalloonRideEvent());
+        EventRegistry.register(new ItemCooldownEvent());
+        EventRegistry.register(new StairSkyEvent());
+        EventRegistry.register(new RainOfFishEvent());
+        EventRegistry.register(new ZombieFloodEvent());
     }
 }

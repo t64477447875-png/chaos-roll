@@ -50,6 +50,24 @@ public final class CoopTickHandler {
         tickStaticShock(server);
         tickDirectionLock(server);
         tickMorph(server);
+        tickNoJump(server);
+    }
+
+    private static void tickNoJump(MinecraftServer server) {
+        if (CoopState.NO_JUMP.isEmpty()) return;
+        int now = server.getTickCount();
+        Iterator<Map.Entry<UUID, Integer>> it = CoopState.NO_JUMP.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<UUID, Integer> e = it.next();
+            if (now >= e.getValue()) {
+                it.remove();
+                ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
+                if (p != null) {
+                    net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
+                            p, new com.chaosroll.network.NoJumpPacket(0));
+                }
+            }
+        }
     }
 
     private static void tickIronLung(MinecraftServer server) {
@@ -182,11 +200,14 @@ public final class CoopTickHandler {
             CoopState.DirectionLock dl = e.getValue();
             if (now >= dl.endTick) {
                 it.remove();
+                ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
+                if (p != null) {
+                    net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
+                            p, new com.chaosroll.network.DirectionLockPacket(0, 0f));
+                }
                 continue;
             }
-            ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
-            if (p == null) continue;
-            p.connection.teleport(p.getX(), p.getY(), p.getZ(), dl.lockedYaw, p.getXRot());
+            // Client mixin enforces yaw lock; movement (W/A/S/D) stays free because we don't teleport.
         }
     }
 
@@ -205,6 +226,8 @@ public final class CoopTickHandler {
                     var ent = lvl.getEntity(ms.mobUuid);
                     if (ent != null) ent.discard();
                     p.removeEffect(MobEffects.INVISIBILITY);
+                    net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
+                            p, new com.chaosroll.network.MorphPacket(0, "", 1.62f));
                 } else {
                     for (ServerLevel lvl : server.getAllLevels()) {
                         var ent = lvl.getEntity(ms.mobUuid);
@@ -218,6 +241,8 @@ public final class CoopTickHandler {
             if (ent == null) {
                 it.remove();
                 p.removeEffect(MobEffects.INVISIBILITY);
+                net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(
+                        p, new com.chaosroll.network.MorphPacket(0, "", 1.62f));
                 continue;
             }
             ent.moveTo(p.getX(), p.getY(), p.getZ(), p.getYRot(), p.getXRot());
@@ -262,12 +287,32 @@ public final class CoopTickHandler {
                 continue;
             }
             if (pa == null || pb == null) continue;
-            if (pa.isDeadOrDying() && pb.isAlive()) {
-                pb.kill();
-                pb.sendSystemMessage(Component.literal("[Chaos Roll] Твій напарник помер — і ти теж."));
-            } else if (pb.isDeadOrDying() && pa.isAlive()) {
-                pa.kill();
-                pa.sendSystemMessage(Component.literal("[Chaos Roll] Твій напарник помер — і ти теж."));
+
+            boolean aDead = pa.isDeadOrDying();
+            boolean bDead = pb.isDeadOrDying();
+
+            if (!aDead && !bDead) {
+                // Both alive — reset cycle so the next death triggers again.
+                s.killedThisCycle = false;
+                continue;
+            }
+
+            if (s.killedThisCycle) {
+                // Already triggered this death cycle; let players respawn freely.
+                continue;
+            }
+
+            if (aDead && !bDead) {
+                pb.hurt(pb.damageSources().genericKill(), Float.MAX_VALUE);
+                pb.sendSystemMessage(Component.literal("[Chaos Roll] §cТвій напарник помер — і ти теж."));
+                s.killedThisCycle = true;
+            } else if (bDead && !aDead) {
+                pa.hurt(pa.damageSources().genericKill(), Float.MAX_VALUE);
+                pa.sendSystemMessage(Component.literal("[Chaos Roll] §cТвій напарник помер — і ти теж."));
+                s.killedThisCycle = true;
+            } else {
+                // Both already dead — mark cycle done so respawns aren't re-killed.
+                s.killedThisCycle = true;
             }
         }
     }
