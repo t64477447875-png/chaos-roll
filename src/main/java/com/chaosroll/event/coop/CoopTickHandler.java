@@ -39,6 +39,29 @@ public final class CoopTickHandler {
         tickBerserker(server);
         tickExpiringMap(server, CoopState.BLOCK_ROULETTE);
         tickExpiringMap(server, CoopState.CURSED_DAMAGE);
+        tickExpiringMap(server, CoopState.DOUBLE_DROPS);
+        tickExpiringMap(server, CoopState.RANDOM_LOOT);
+        tickPathBuilder(server);
+    }
+
+    private static void tickPathBuilder(MinecraftServer server) {
+        if (CoopState.PATH_BUILDER.isEmpty()) return;
+        int now = server.getTickCount();
+        Iterator<Map.Entry<UUID, Integer>> it = CoopState.PATH_BUILDER.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<UUID, Integer> e = it.next();
+            if (now >= e.getValue()) {
+                it.remove();
+                continue;
+            }
+            ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
+            if (p == null) continue;
+            net.minecraft.core.BlockPos under = p.blockPosition().below();
+            ServerLevel lvl = p.serverLevel();
+            if (lvl.getBlockState(under).isAir() || lvl.getBlockState(under).canBeReplaced()) {
+                lvl.setBlock(under, net.minecraft.world.level.block.Blocks.QUARTZ_BLOCK.defaultBlockState(), 3);
+            }
+        }
     }
 
     private static void tickLifeline(MinecraftServer server) {

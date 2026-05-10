@@ -8,6 +8,9 @@ import com.chaosroll.event.EventContext;
 import com.chaosroll.event.EventRegistry;
 import com.chaosroll.event.ScheduledTaskManager;
 import com.chaosroll.timer.RollTimerManager;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.chaosroll.config.ChaosRollConfig;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.particles.ParticleOptions;
@@ -22,6 +25,7 @@ import net.minecraft.sounds.SoundSource;
 public final class NetworkHandler {
 
     public static final int ANIMATION_DURATION_TICKS = 65;
+    private static final Gson CONFIG_GSON = new GsonBuilder().create();
 
     private NetworkHandler() {}
 
@@ -31,11 +35,58 @@ public final class NetworkHandler {
         PayloadTypeRegistry.playS2C().register(GlobalEventPacket.TYPE, GlobalEventPacket.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(ActiveEffectsPacket.TYPE, ActiveEffectsPacket.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(ScreenFlipPacket.TYPE, ScreenFlipPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(ConfigSyncPacket.TYPE, ConfigSyncPacket.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(RollRequestPacket.TYPE, RollRequestPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playC2S().register(ConfigUpdatePacket.TYPE, ConfigUpdatePacket.STREAM_CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(RollRequestPacket.TYPE, (payload, context) -> {
             context.player().getServer().execute(() -> handleRollRequest(context.player()));
         });
+
+        ServerPlayNetworking.registerGlobalReceiver(ConfigUpdatePacket.TYPE, (payload, context) -> {
+            ServerPlayer p = context.player();
+            String json = payload.json();
+            p.getServer().execute(() -> handleConfigUpdate(p, json));
+        });
+    }
+
+    private static void handleConfigUpdate(ServerPlayer player, String json) {
+        if (player.getServer() == null) return;
+        boolean op = player.hasPermissions(2) || player.getServer().isSingleplayer();
+        if (!op) {
+            player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                    "[Chaos Roll] Тільки оператор сервера може змінювати конфіг."));
+            broadcastConfigSync(player.getServer());
+            return;
+        }
+        try {
+            ChaosRollConfig parsed = CONFIG_GSON.fromJson(json, ChaosRollConfig.class);
+            if (parsed == null) return;
+            parsed.validate();
+            ChaosRollConfig live = ConfigManager.get();
+            ConfigManager.replace(parsed);
+            ConfigManager.save();
+            player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                    "[Chaos Roll] Глобальний конфіг оновлено."));
+            broadcastConfigSync(player.getServer());
+        } catch (Exception ex) {
+            ChaosRollMod.LOGGER.error("[Chaos Roll] Failed to apply config update from {}: {}",
+                    player.getName().getString(), ex.getMessage());
+        }
+    }
+
+    public static void broadcastConfigSync(MinecraftServer server) {
+        if (server == null) return;
+        String json = CONFIG_GSON.toJson(ConfigManager.get());
+        ConfigSyncPacket packet = new ConfigSyncPacket(json);
+        for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+            ServerPlayNetworking.send(p, packet);
+        }
+    }
+
+    public static void sendConfigTo(ServerPlayer player) {
+        String json = CONFIG_GSON.toJson(ConfigManager.get());
+        ServerPlayNetworking.send(player, new ConfigSyncPacket(json));
     }
 
     private static void broadcastGlobalEvent(ServerPlayer initiator, BaseEvent event) {
@@ -101,7 +152,7 @@ public final class NetworkHandler {
         });
     }
 
-    private static void handleRollRequest(ServerPlayer player) {
+    public static void handleRollRequest(ServerPlayer player) {
         if (!RollTimerManager.isRollReady(player)) {
             return;
         }

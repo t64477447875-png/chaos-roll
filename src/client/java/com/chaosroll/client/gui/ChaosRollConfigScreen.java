@@ -87,6 +87,10 @@ public class ChaosRollConfigScreen extends Screen {
                 "Панель ефектів", working.showActiveEffectsPanel,
                 v -> working.showActiveEffectsPanel = v));
 
+        addRenderableWidget(toggle(leftCol, top + rowH * 8, 150, 20,
+                "Авто-ролл", working.autoRoll,
+                v -> working.autoRoll = v));
+
         int btnY = this.height - 30;
         addRenderableWidget(Button.builder(Component.literal("Скинути"), b -> {
             ChaosRollConfig defaults = new ChaosRollConfig();
@@ -98,6 +102,7 @@ public class ChaosRollConfigScreen extends Screen {
         addRenderableWidget(Button.builder(Component.literal("Зберегти"), b -> {
             applyToConfig(working);
             ConfigManager.save();
+            sendUpdateToServer(working);
             this.minecraft.setScreen(parent);
         }).bounds(cx - 50, btnY, 100, 20).build());
 
@@ -124,7 +129,16 @@ public class ChaosRollConfigScreen extends Screen {
         live.showActiveEffectsPanel = src.showActiveEffectsPanel;
         live.guaranteePositiveAfterNegativeStreak = src.guaranteePositiveAfterNegativeStreak;
         live.guaranteeNonPositiveAfterPositiveStreak = src.guaranteeNonPositiveAfterPositiveStreak;
+        live.autoRoll = src.autoRoll;
         live.validate();
+    }
+
+    private static void sendUpdateToServer(ChaosRollConfig cfg) {
+        try {
+            String json = new com.google.gson.Gson().toJson(cfg);
+            net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
+                    .send(new com.chaosroll.network.ConfigUpdatePacket(json));
+        } catch (Exception ignored) {}
     }
 
     private static CycleButton<Boolean> toggle(int x, int y, int w, int h,

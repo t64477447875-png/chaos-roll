@@ -32,8 +32,10 @@ public class ChaosRollMod implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, registry, env) ->
                 ChaosRollCommand.register(dispatcher));
 
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
-                RollTimerManager.onPlayerJoin(handler.getPlayer()));
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            RollTimerManager.onPlayerJoin(handler.getPlayer());
+            NetworkHandler.sendConfigTo(handler.getPlayer());
+        });
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
                 RollTimerManager.onPlayerLeave(handler.getPlayer()));

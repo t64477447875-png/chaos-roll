@@ -101,4 +101,7 @@ public final class CoopState {
     public static final Map<UUID, Integer> BERSERKER = new HashMap<>();
     public static final Map<UUID, Integer> BLOCK_ROULETTE = new HashMap<>();
     public static final Map<UUID, Integer> CURSED_DAMAGE = new HashMap<>();
+    public static final Map<UUID, Integer> DOUBLE_DROPS = new HashMap<>();
+    public static final Map<UUID, Integer> RANDOM_LOOT = new HashMap<>();
+    public static final Map<UUID, Integer> PATH_BUILDER = new HashMap<>();
 }
