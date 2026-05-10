@@ -30,6 +30,7 @@ public final class NetworkHandler {
         PayloadTypeRegistry.playS2C().register(RollResultPacket.TYPE, RollResultPacket.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(GlobalEventPacket.TYPE, GlobalEventPacket.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(ActiveEffectsPacket.TYPE, ActiveEffectsPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(ScreenFlipPacket.TYPE, ScreenFlipPacket.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(RollRequestPacket.TYPE, RollRequestPacket.STREAM_CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(RollRequestPacket.TYPE, (payload, context) -> {
