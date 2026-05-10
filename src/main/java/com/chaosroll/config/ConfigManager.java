@@ -76,4 +76,10 @@ public final class ConfigManager {
     public static synchronized void reload() {
         load();
     }
+
+    public static synchronized void replace(ChaosRollConfig newConfig) {
+        if (newConfig == null) return;
+        newConfig.validate();
+        CONFIG = newConfig;
+    }
 }

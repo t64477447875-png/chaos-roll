@@ -83,6 +83,9 @@ public final class RollTimerManager {
             t.ticksLeft = 0;
             t.rollReady = true;
             sendSync(player);
+            if (ConfigManager.get().autoRoll) {
+                com.chaosroll.network.NetworkHandler.handleRollRequest(player);
+            }
             return;
         }
 

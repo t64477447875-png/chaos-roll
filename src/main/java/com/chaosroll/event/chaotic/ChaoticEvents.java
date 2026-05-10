@@ -50,5 +50,7 @@ public final class ChaoticEvents {
         EventRegistry.register(new DimensionRouletteEvent());
         EventRegistry.register(new BlackHoleEvent());
         EventRegistry.register(new BlockStormEvent());
+        EventRegistry.register(new LootRouletteEvent());
+        EventRegistry.register(new PathBuilderEvent());
     }
 }
