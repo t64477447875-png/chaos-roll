@@ -27,5 +27,9 @@ public final class PositiveEvents {
         EventRegistry.register(new MaxHorseEvent());
         EventRegistry.register(new EnderStashEvent());
         EventRegistry.register(new RandomEnchantEvent());
+        EventRegistry.register(new PowerSurgeEvent());
+        EventRegistry.register(new MiningFrenzyEvent());
+        EventRegistry.register(new TreasureBurstEvent());
+        EventRegistry.register(new PhoenixRiseEvent());
     }
 }

@@ -41,5 +41,9 @@ public final class NegativeEvents {
         EventRegistry.register(new MirrorMatchEvent());
         EventRegistry.register(new PacifistEvent());
         EventRegistry.register(new CursedDamageEvent());
+        EventRegistry.register(new TntBlockEvent());
+        EventRegistry.register(new SandTombEvent());
+        EventRegistry.register(new CobbleBoxEvent());
+        EventRegistry.register(new DropTheMicEvent());
     }
 }
