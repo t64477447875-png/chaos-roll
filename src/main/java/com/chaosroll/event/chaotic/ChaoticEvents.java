@@ -44,5 +44,7 @@ public final class ChaoticEvents {
         EventRegistry.register(new MobMultiplyEvent());
         EventRegistry.register(new BerserkerEvent());
         EventRegistry.register(new BlockRouletteEvent());
+        EventRegistry.register(new ScreenFlipEvent());
+        EventRegistry.register(new TornadoEvent());
     }
 }

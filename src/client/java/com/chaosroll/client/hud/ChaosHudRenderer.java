@@ -1,9 +1,11 @@
 package com.chaosroll.client.hud;
 
 import com.chaosroll.config.ConfigManager;
+import com.chaosroll.client.state.ScreenFlipState;
 import com.chaosroll.network.ActiveEffectsPacket;
 import com.chaosroll.network.GlobalEventPacket;
 import com.chaosroll.network.RollResultPacket;
+import com.chaosroll.network.ScreenFlipPacket;
 import com.chaosroll.network.TimerSyncPacket;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -54,6 +56,10 @@ public final class ChaosHudRenderer {
 
         ClientPlayNetworking.registerGlobalReceiver(ActiveEffectsPacket.TYPE, (payload, context) -> {
             context.client().execute(() -> ActiveEffectsState.update(payload.entries()));
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(ScreenFlipPacket.TYPE, (payload, context) -> {
+            context.client().execute(() -> ScreenFlipState.start(payload.durationTicks()));
         });
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
