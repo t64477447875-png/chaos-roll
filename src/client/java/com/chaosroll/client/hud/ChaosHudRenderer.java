@@ -1,9 +1,15 @@
 package com.chaosroll.client.hud;
 
 import com.chaosroll.config.ConfigManager;
+import com.chaosroll.client.state.DirectionLockState;
+import com.chaosroll.client.state.MorphClientState;
+import com.chaosroll.client.state.NoJumpState;
 import com.chaosroll.client.state.ScreenFlipState;
 import com.chaosroll.network.ActiveEffectsPacket;
+import com.chaosroll.network.DirectionLockPacket;
 import com.chaosroll.network.GlobalEventPacket;
+import com.chaosroll.network.MorphPacket;
+import com.chaosroll.network.NoJumpPacket;
 import com.chaosroll.network.RollResultPacket;
 import com.chaosroll.network.ConfigSyncPacket;
 import com.chaosroll.network.ScreenFlipPacket;
@@ -61,6 +67,33 @@ public final class ChaosHudRenderer {
 
         ClientPlayNetworking.registerGlobalReceiver(ScreenFlipPacket.TYPE, (payload, context) -> {
             context.client().execute(() -> ScreenFlipState.start(payload.durationTicks()));
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(DirectionLockPacket.TYPE, (payload, context) -> {
+            context.client().execute(() -> {
+                if (payload.durationTicks() <= 0) {
+                    DirectionLockState.clear();
+                } else {
+                    DirectionLockState.start(payload.durationTicks(), payload.lockedYaw());
+                }
+            });
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(NoJumpPacket.TYPE, (payload, context) -> {
+            context.client().execute(() -> {
+                if (payload.durationTicks() <= 0) NoJumpState.clear();
+                else NoJumpState.start(payload.durationTicks());
+            });
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(MorphPacket.TYPE, (payload, context) -> {
+            context.client().execute(() -> {
+                if (payload.durationTicks() <= 0) {
+                    MorphClientState.clear();
+                } else {
+                    MorphClientState.start(payload.durationTicks(), payload.mobTypeKey(), payload.eyeHeight());
+                }
+            });
         });
 
         ClientPlayNetworking.registerGlobalReceiver(ConfigSyncPacket.TYPE, (payload, context) -> {

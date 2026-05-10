@@ -2,13 +2,14 @@ package com.chaosroll.event.chaotic;
 
 import com.chaosroll.event.*;
 import com.chaosroll.event.coop.CoopState;
+import com.chaosroll.network.MorphPacket;
 import com.chaosroll.util.EventNotifyUtil;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobSpawnType;
 
 import java.util.List;
 
@@ -52,12 +53,20 @@ public class MobMorphEvent extends BaseEvent {
         }
         world.addFreshEntity(mob);
 
-        player.addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, 1200, 0, false, false));
+        int duration = getDurationTicks();
+        // Long-duration invisibility so other players see only the mob.
+        player.addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, duration, 0, false, false));
 
-        int endTick = context.server().getTickCount() + 1200;
+        int endTick = context.server().getTickCount() + duration;
         CoopState.MORPH.put(player.getUUID(), new CoopState.MorphSession(endTick, mob.getId(), mob.getUUID()));
 
+        // Notify the client to switch into third-person and adopt the mob's eye height. This makes
+        // morph feel real: the player sees the mob as their own avatar instead of just being invisible.
+        String mobKey = BuiltInRegistries.ENTITY_TYPE.getKey(type).toString();
+        float mobEyeHeight = mob.getEyeHeight();
+        ServerPlayNetworking.send(player, new MorphPacket(duration, mobKey, mobEyeHeight));
+
         EventNotifyUtil.notifyPlayer(player, this,
-                "60с — ти " + type.getDescription().getString() + " для всіх інших!");
+                "60с — ти РЕАЛЬНО став " + type.getDescription().getString() + "! (камера від 3-ї особи)");
     }
 }

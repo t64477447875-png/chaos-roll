@@ -35,6 +35,9 @@ public final class NetworkHandler {
         PayloadTypeRegistry.playS2C().register(GlobalEventPacket.TYPE, GlobalEventPacket.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(ActiveEffectsPacket.TYPE, ActiveEffectsPacket.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(ScreenFlipPacket.TYPE, ScreenFlipPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(DirectionLockPacket.TYPE, DirectionLockPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(NoJumpPacket.TYPE, NoJumpPacket.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(MorphPacket.TYPE, MorphPacket.STREAM_CODEC);
         PayloadTypeRegistry.playS2C().register(ConfigSyncPacket.TYPE, ConfigSyncPacket.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(RollRequestPacket.TYPE, RollRequestPacket.STREAM_CODEC);
         PayloadTypeRegistry.playC2S().register(ConfigUpdatePacket.TYPE, ConfigUpdatePacket.STREAM_CODEC);

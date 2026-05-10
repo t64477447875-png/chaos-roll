@@ -58,11 +58,14 @@ public final class CoopState {
         public final UUID a;
         public final UUID b;
         public final int endTick;
+        /** True while at least one partner is in the death screen. Reset when both alive again. */
+        public boolean killedThisCycle;
 
         public LifelineSession(UUID a, UUID b, int endTick) {
             this.a = a;
             this.b = b;
             this.endTick = endTick;
+            this.killedThisCycle = false;
         }
     }
 
@@ -133,4 +136,7 @@ public final class CoopState {
         }
     }
     public static final Map<UUID, MorphSession> MORPH = new HashMap<>();
+
+    /** UUID -> end-tick. Server-side tracking of "no jump" effect. Client mixin actually blocks the jump. */
+    public static final Map<UUID, Integer> NO_JUMP = new HashMap<>();
 }
