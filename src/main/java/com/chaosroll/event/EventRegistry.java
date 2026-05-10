@@ -73,9 +73,13 @@ public final class EventRegistry {
         boolean forcePositive = maxNegStreak > 0 && negStreak >= maxNegStreak;
         boolean forceNonPositive = !forcePositive && maxPosStreak > 0 && posStreak >= maxPosStreak;
 
+        Set<String> personalBlocklist = data == null ? Set.of()
+                : new HashSet<>(data.getOrCreateStats(id).blocklist);
+
         List<BaseEvent> pool = new ArrayList<>();
         for (BaseEvent e : ALL_EVENTS) {
             if (disabled.contains(e.getId())) continue;
+            if (personalBlocklist.contains(e.getId())) continue;
             if (!isTypeEnabled(cfg, e.getType())) continue;
             if (!cfg.globalEventsEnabled && e.isGlobal()) continue;
             if (!e.canExecute(ctx)) continue;
@@ -87,6 +91,7 @@ public final class EventRegistry {
         if (pool.isEmpty() && (forcePositive || forceNonPositive)) {
             for (BaseEvent e : ALL_EVENTS) {
                 if (disabled.contains(e.getId())) continue;
+                if (personalBlocklist.contains(e.getId())) continue;
                 if (!isTypeEnabled(cfg, e.getType())) continue;
                 if (!cfg.globalEventsEnabled && e.isGlobal()) continue;
                 if (!e.canExecute(ctx)) continue;

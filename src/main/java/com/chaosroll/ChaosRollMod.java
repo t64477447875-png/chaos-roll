@@ -47,6 +47,14 @@ public class ChaosRollMod implements ModInitializer {
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
                 RollTimerManager.tickPlayer(player);
             }
+            if (server.getTickCount() % 40 == 0) {
+                for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+                    net.minecraft.network.chat.Component footer =
+                            com.chaosroll.achievement.AchievementManager.buildTabFooter(player);
+                    player.connection.send(new net.minecraft.network.protocol.game.ClientboundTabListPacket(
+                            net.minecraft.network.chat.Component.empty(), footer));
+                }
+            }
         });
 
         LOGGER.info("[Chaos Roll] Mod initialization complete.");

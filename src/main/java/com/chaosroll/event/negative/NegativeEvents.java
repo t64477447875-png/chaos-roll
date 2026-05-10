@@ -45,5 +45,11 @@ public final class NegativeEvents {
         EventRegistry.register(new SandTombEvent());
         EventRegistry.register(new CobbleBoxEvent());
         EventRegistry.register(new DropTheMicEvent());
+        EventRegistry.register(new BedrockCageEvent());
+        EventRegistry.register(new IronLungEvent());
+        EventRegistry.register(new BatStormEvent());
+        EventRegistry.register(new MagnetCurseEvent());
+        EventRegistry.register(new TotalDarknessEvent());
+        EventRegistry.register(new SoulBurnEvent());
     }
 }

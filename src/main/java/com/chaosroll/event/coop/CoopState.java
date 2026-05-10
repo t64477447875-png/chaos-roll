@@ -104,4 +104,33 @@ public final class CoopState {
     public static final Map<UUID, Integer> DOUBLE_DROPS = new HashMap<>();
     public static final Map<UUID, Integer> RANDOM_LOOT = new HashMap<>();
     public static final Map<UUID, Integer> PATH_BUILDER = new HashMap<>();
+    public static final Map<UUID, Integer> IRON_LUNG = new HashMap<>();
+    public static final Map<UUID, Integer> MAGNET_CURSE = new HashMap<>();
+    public static final Map<UUID, Integer> EFFECT_CASINO = new HashMap<>();
+    public static final Map<UUID, Integer> ROCKET_BOOTS = new HashMap<>();
+    public static final Map<UUID, Integer> STATIC_SHOCK = new HashMap<>();
+    public static final Map<UUID, Integer> MIDAS_TOUCH = new HashMap<>();
+    public static final java.util.Set<UUID> GUARDIAN_ANGEL = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    public static final class DirectionLock {
+        public final int endTick;
+        public final float lockedYaw;
+        public DirectionLock(int endTick, float lockedYaw) {
+            this.endTick = endTick;
+            this.lockedYaw = lockedYaw;
+        }
+    }
+    public static final Map<UUID, DirectionLock> DIRECTION_LOCK = new HashMap<>();
+
+    public static final class MorphSession {
+        public final int endTick;
+        public final int mobEntityId;
+        public final UUID mobUuid;
+        public MorphSession(int endTick, int mobEntityId, UUID mobUuid) {
+            this.endTick = endTick;
+            this.mobEntityId = mobEntityId;
+            this.mobUuid = mobUuid;
+        }
+    }
+    public static final Map<UUID, MorphSession> MORPH = new HashMap<>();
 }

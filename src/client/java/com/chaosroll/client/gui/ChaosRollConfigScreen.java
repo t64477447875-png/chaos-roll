@@ -90,6 +90,20 @@ public class ChaosRollConfigScreen extends Screen {
         addRenderableWidget(toggle(leftCol, top + rowH * 8, 150, 20,
                 "Авто-ролл", working.autoRoll,
                 v -> working.autoRoll = v));
+        addRenderableWidget(toggle(rightCol, top + rowH * 8, 150, 20,
+                "Vote-to-skip", working.voteToSkipEnabled,
+                v -> working.voteToSkipEnabled = v));
+
+        addRenderableWidget(toggle(leftCol, top + rowH * 9, 150, 20,
+                "Досягнення", working.enableAchievements,
+                v -> working.enableAchievements = v));
+        addRenderableWidget(toggle(rightCol, top + rowH * 9, 150, 20,
+                "English locale", working.enableEnglishLocale,
+                v -> working.enableEnglishLocale = v));
+
+        addRenderableWidget(Button.builder(Component.literal("Список подій / опис"),
+                b -> this.minecraft.setScreen(new EventListScreen(this)))
+                .bounds(leftCol, top + rowH * 10, 305, 20).build());
 
         int btnY = this.height - 30;
         addRenderableWidget(Button.builder(Component.literal("Скинути"), b -> {
@@ -130,6 +144,9 @@ public class ChaosRollConfigScreen extends Screen {
         live.guaranteePositiveAfterNegativeStreak = src.guaranteePositiveAfterNegativeStreak;
         live.guaranteeNonPositiveAfterPositiveStreak = src.guaranteeNonPositiveAfterPositiveStreak;
         live.autoRoll = src.autoRoll;
+        live.voteToSkipEnabled = src.voteToSkipEnabled;
+        live.enableAchievements = src.enableAchievements;
+        live.enableEnglishLocale = src.enableEnglishLocale;
         live.validate();
     }
 

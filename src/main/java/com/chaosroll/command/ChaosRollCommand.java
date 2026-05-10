@@ -39,22 +39,25 @@ public final class ChaosRollCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         LiteralArgumentBuilder<CommandSourceStack> root = Commands.literal("chaosroll")
-                .requires(src -> src.hasPermission(2))
                 .then(Commands.literal("config")
+                        .requires(src -> src.hasPermission(2))
                         .then(Commands.literal("reload").executes(ChaosRollCommand::reloadConfig))
                         .then(Commands.literal("show").executes(ChaosRollCommand::showConfig)))
                 .then(Commands.literal("reload")
                         .requires(src -> src.hasPermission(3))
                         .executes(ChaosRollCommand::reloadConfig))
                 .then(Commands.literal("roll")
+                        .requires(src -> src.hasPermission(2))
                         .then(Commands.argument("player", EntityArgument.player())
                                 .executes(ChaosRollCommand::rollPlayer)))
                 .then(Commands.literal("event")
+                        .requires(src -> src.hasPermission(2))
                         .then(Commands.argument("id", StringArgumentType.word())
                                 .suggests(EVENT_ID_SUGGESTIONS)
                                 .then(Commands.argument("player", EntityArgument.player())
                                         .executes(ChaosRollCommand::runEventForPlayer))))
                 .then(Commands.literal("pause")
+                        .requires(src -> src.hasPermission(2))
                         .then(Commands.literal("all").executes(ChaosRollCommand::pauseAll))
                         .then(Commands.argument("player", EntityArgument.player())
                                 .executes(ChaosRollCommand::pausePlayer)))
@@ -65,8 +68,97 @@ public final class ChaosRollCommand {
                 .then(Commands.literal("stats")
                         .executes(ctx -> showStats(ctx, ctx.getSource().getPlayerOrException()))
                         .then(Commands.argument("player", EntityArgument.player())
-                                .executes(ctx -> showStats(ctx, EntityArgument.getPlayer(ctx, "player")))));
+                                .executes(ctx -> showStats(ctx, EntityArgument.getPlayer(ctx, "player")))))
+                .then(Commands.literal("vote")
+                        .then(Commands.literal("yes").executes(ctx -> voteCast(ctx, true)))
+                        .then(Commands.literal("no").executes(ctx -> voteCast(ctx, false)))
+                        .then(Commands.literal("status").executes(ChaosRollCommand::voteStatus)))
+                .then(Commands.literal("achievements")
+                        .executes(ChaosRollCommand::listAchievements))
+                .then(Commands.literal("block")
+                        .then(Commands.argument("id", StringArgumentType.word())
+                                .suggests(EVENT_ID_SUGGESTIONS)
+                                .executes(ChaosRollCommand::toggleBlock)))
+                .then(Commands.literal("blocklist")
+                        .executes(ChaosRollCommand::showBlocklist));
         dispatcher.register(root);
+    }
+
+    private static int voteCast(CommandContext<CommandSourceStack> ctx, boolean yes) throws CommandSyntaxException {
+        ServerPlayer p = ctx.getSource().getPlayerOrException();
+        if (!com.chaosroll.vote.VoteManager.hasActiveVote()) {
+            error(ctx, "Зараз немає активного голосування.");
+            return 0;
+        }
+        com.chaosroll.vote.VoteManager.castVote(p, yes);
+        success(ctx, "Голос зараховано: " + (yes ? "ПРОПУСТИТИ" : "ЗАЛИШИТИ") + ".");
+        return 1;
+    }
+
+    private static int voteStatus(CommandContext<CommandSourceStack> ctx) {
+        if (!com.chaosroll.vote.VoteManager.hasActiveVote()) {
+            info(ctx, "Активного голосування немає.");
+            return 1;
+        }
+        info(ctx, "Голосування: " + com.chaosroll.vote.VoteManager.currentEventName()
+                + " — §aYES: " + com.chaosroll.vote.VoteManager.getYesCount()
+                + "§r, §cNO: " + com.chaosroll.vote.VoteManager.getNoCount());
+        return 1;
+    }
+
+    private static int listAchievements(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        ServerPlayer p = ctx.getSource().getPlayerOrException();
+        if (p.getServer() == null) return 0;
+        com.chaosroll.data.ChaosRollSavedData data = com.chaosroll.data.ChaosRollSavedData.get(p.getServer());
+        com.chaosroll.data.PlayerStats st = data.getOrCreateStats(p.getUUID());
+        info(ctx, "Досягнення (" + st.achievements.size() + "/"
+                + com.chaosroll.achievement.AchievementRegistry.ALL.size() + "):");
+        for (com.chaosroll.achievement.Achievement a : com.chaosroll.achievement.AchievementRegistry.ALL.values()) {
+            String mark = st.achievements.contains(a.id) ? "§a✔" : "§7✘";
+            ctx.getSource().sendSuccess(() -> Component.literal(
+                    "  " + mark + " §f" + a.displayName + " §7— " + a.description), false);
+        }
+        return 1;
+    }
+
+    private static int toggleBlock(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        ServerPlayer p = ctx.getSource().getPlayerOrException();
+        if (p.getServer() == null) return 0;
+        String id = StringArgumentType.getString(ctx, "id");
+        com.chaosroll.event.BaseEvent ev = EventRegistry.getById(id);
+        if (ev == null) {
+            error(ctx, "Подія '" + id + "' не знайдена.");
+            return 0;
+        }
+        com.chaosroll.data.ChaosRollSavedData data = com.chaosroll.data.ChaosRollSavedData.get(p.getServer());
+        com.chaosroll.data.PlayerStats st = data.getOrCreateStats(p.getUUID());
+        if (st.blocklist.contains(id)) {
+            st.blocklist.remove(id);
+            success(ctx, "Подію '" + ev.getDisplayName() + "' розблоковано.");
+        } else {
+            st.blocklist.add(id);
+            success(ctx, "Подію '" + ev.getDisplayName() + "' заблоковано (більше не випаде тобі).");
+        }
+        data.setDirty();
+        return 1;
+    }
+
+    private static int showBlocklist(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        ServerPlayer p = ctx.getSource().getPlayerOrException();
+        if (p.getServer() == null) return 0;
+        com.chaosroll.data.ChaosRollSavedData data = com.chaosroll.data.ChaosRollSavedData.get(p.getServer());
+        com.chaosroll.data.PlayerStats st = data.getOrCreateStats(p.getUUID());
+        if (st.blocklist.isEmpty()) {
+            info(ctx, "Твій блок-лист порожній.");
+            return 1;
+        }
+        info(ctx, "Заблоковано (" + st.blocklist.size() + "):");
+        for (String id : st.blocklist) {
+            com.chaosroll.event.BaseEvent ev = EventRegistry.getById(id);
+            String name = ev == null ? id : ev.getDisplayName();
+            ctx.getSource().sendSuccess(() -> Component.literal("  §c✘ §f" + name + " §7(" + id + ")"), false);
+        }
+        return 1;
     }
 
     private static int reloadConfig(CommandContext<CommandSourceStack> ctx) {

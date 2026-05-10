@@ -27,6 +27,10 @@ public final class ChaosRollConfig {
     public int maxActiveEffects = 5;
     public boolean enableDifficultyScaling = true;
     public boolean autoRoll = false;
+    public boolean voteToSkipEnabled = true;
+    public int voteToSkipDurationTicks = 80;
+    public boolean enableAchievements = true;
+    public boolean enableEnglishLocale = false;
 
     public ChaosRollConfig copy() {
         ChaosRollConfig c = new ChaosRollConfig();
@@ -52,6 +56,10 @@ public final class ChaosRollConfig {
         c.maxActiveEffects = maxActiveEffects;
         c.enableDifficultyScaling = enableDifficultyScaling;
         c.autoRoll = autoRoll;
+        c.voteToSkipEnabled = voteToSkipEnabled;
+        c.voteToSkipDurationTicks = voteToSkipDurationTicks;
+        c.enableAchievements = enableAchievements;
+        c.enableEnglishLocale = enableEnglishLocale;
         return c;
     }
 
@@ -72,6 +80,7 @@ public final class ChaosRollConfig {
         if (guaranteePositiveAfterNegativeStreak < 0) guaranteePositiveAfterNegativeStreak = defaults.guaranteePositiveAfterNegativeStreak;
         if (guaranteeNonPositiveAfterPositiveStreak < 0) guaranteeNonPositiveAfterPositiveStreak = defaults.guaranteeNonPositiveAfterPositiveStreak;
         if (maxActiveEffects < 1 || maxActiveEffects > 32) maxActiveEffects = defaults.maxActiveEffects;
+        if (voteToSkipDurationTicks < 20 || voteToSkipDurationTicks > 600) voteToSkipDurationTicks = defaults.voteToSkipDurationTicks;
     }
 
     private static boolean isValidBalanceMode(String mode) {

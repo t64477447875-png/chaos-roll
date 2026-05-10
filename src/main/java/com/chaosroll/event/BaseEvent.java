@@ -6,6 +6,10 @@ public abstract class BaseEvent {
 
     public abstract String getDisplayName();
 
+    public String getDescription() {
+        return "";
+    }
+
     public abstract EventType getType();
 
     public abstract EventRarity getRarity();

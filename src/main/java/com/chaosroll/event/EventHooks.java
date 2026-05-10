@@ -53,6 +53,22 @@ public final class EventHooks {
         PlayerBlockBreakEvents.AFTER.register(EventHooks::onBlockBreak);
         ServerLivingEntityEvents.ALLOW_DAMAGE.register(EventHooks::onAllowDamage);
         ServerLivingEntityEvents.AFTER_DEATH.register(EventHooks::onMobDeath);
+        ServerLivingEntityEvents.ALLOW_DEATH.register(EventHooks::onAllowDeath);
+    }
+
+    private static boolean onAllowDeath(LivingEntity entity, net.minecraft.world.damagesource.DamageSource source, float amount) {
+        if (!(entity instanceof ServerPlayer p)) return true;
+        if (!CoopState.GUARDIAN_ANGEL.contains(p.getUUID())) return true;
+        CoopState.GUARDIAN_ANGEL.remove(p.getUUID());
+        p.setHealth(p.getMaxHealth());
+        p.getFoodData().setFoodLevel(20);
+        p.getFoodData().setSaturation(20f);
+        p.removeAllEffects();
+        p.setRemainingFireTicks(0);
+        p.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                "[Chaos Roll] §6Янгол врятував тебе! Більше янгола нема."));
+        com.chaosroll.achievement.AchievementManager.recordGuardianUsed(p);
+        return false;
     }
 
     private static void onBlockBreak(Level world, Player player, BlockPos pos,
@@ -88,6 +104,23 @@ public final class EventHooks {
             spawnRandomLoot(world, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
         } else if (rndEnd != null) {
             CoopState.RANDOM_LOOT.remove(sp.getUUID());
+        }
+
+        Integer midasEnd = CoopState.MIDAS_TOUCH.get(sp.getUUID());
+        if (midasEnd != null && now < midasEnd) {
+            int amount = 1 + RNG.nextInt(2);
+            net.minecraft.world.entity.item.ItemEntity gold =
+                    new net.minecraft.world.entity.item.ItemEntity(world,
+                            pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
+                            new ItemStack(Items.GOLD_INGOT, amount));
+            gold.setDeltaMovement(Vec3.ZERO);
+            gold.setPickUpDelay(10);
+            world.addFreshEntity(gold);
+        } else if (midasEnd != null) {
+            CoopState.MIDAS_TOUCH.remove(sp.getUUID());
+            sp.hurt(sp.damageSources().magic(), 10f);
+            sp.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                    "[Chaos Roll] §6Дотик Мідаса добіг кінця... ціна сплачена."));
         }
     }
 
